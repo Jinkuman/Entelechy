@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import supabase from "@/lib/supabaseClient";
+import { Sidebar } from "@/components/sidebar";
 
 export default function RootPage() {
   const router = useRouter();
@@ -27,8 +28,13 @@ export default function RootPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <p>Loading...</p>
+    <div className="flex min-h-screen">
+      <Sidebar />
+      <main className="flex-1 p-6">
+        {/* Your page content goes here */}
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <p className="mt-4">Welcome to your workspace dashboard!</p>
+      </main>
     </div>
   );
 }
