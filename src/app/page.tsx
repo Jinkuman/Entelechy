@@ -3,7 +3,8 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import supabase from "@/lib/supabaseClient";
-import { Sidebar } from "@/components/sidebar";
+import Dashboard from "./pages/dashboard/page";
+import { ThemeProvider } from "next-themes";
 
 export default function RootPage() {
   const router = useRouter();
@@ -17,7 +18,7 @@ export default function RootPage() {
 
       if (session) {
         // Redirect to dashboard if user is authenticated
-        router.replace("/dashboard");
+        router.replace("/pages/dashboard");
       } else {
         // If no session exists, redirect to sign-in page
         router.replace("/auth/sign-in");
@@ -29,12 +30,9 @@ export default function RootPage() {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar />
-      <main className="flex-1 p-6">
-        {/* Your page content goes here */}
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="mt-4">Welcome to your workspace dashboard!</p>
-      </main>
+      <ThemeProvider>
+        <Dashboard />
+      </ThemeProvider>
     </div>
   );
 }

@@ -1,5 +1,7 @@
+// app/layout.tsx
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Sidebar } from "./components/sidebar";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,15 +21,21 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <div className="flex h-screen">
+          {/* fixed sidebar on the left */}
+          <Sidebar />
+
+          {/* main area scrolls independently */}
+          <main className="flex-1 h-full overflow-auto">{children}</main>
+        </div>
       </body>
     </html>
   );

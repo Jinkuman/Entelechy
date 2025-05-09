@@ -33,7 +33,7 @@ export default function SignInPage() {
       setLoading(false);
     } else {
       // Successful sign in; redirect somewhere:
-      router.push("/dashboard");
+      router.push("/pages/dashboard");
     }
   };
 
