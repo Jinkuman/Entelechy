@@ -1,3 +1,4 @@
+// types/eventSchema.ts
 import { z } from "zod";
 
 export const eventSchema = z.object({
@@ -10,6 +11,7 @@ export const eventSchema = z.object({
   allDay: z.boolean().default(false),
   location: z.string().optional(),
   notes: z.string().optional(),
+  color: z.string().default("blue"),
   created_at: z.date(),
   updated_at: z.date(),
 });
