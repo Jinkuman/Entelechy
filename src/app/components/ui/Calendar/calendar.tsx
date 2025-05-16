@@ -1,10 +1,10 @@
-// components/Calendar/Calendar.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Event } from "@/app/schemas/eventSchema"; // Adjust the import path as needed
 import { X } from "lucide-react"; // Import X icon from lucide-react
+import { BellRing, Search, CheckCircle, CalendarIcon } from "lucide-react";
 
 interface CalendarProps {
   events: Event[];
@@ -74,6 +74,7 @@ const Calendar = ({
   const [showEventSidebar, setShowEventSidebar] = useState(false);
   const [direction, setDirection] = useState<"next" | "prev">("next");
   const [editedEvent, setEditedEvent] = useState<Partial<Event> | null>(null);
+  const [showWeatherPanel, setShowWeatherPanel] = useState(true); // For day view additional content
 
   // Constants for time calculations
   const HOUR_HEIGHT = 64; // Height of one hour slot in pixels
@@ -337,6 +338,18 @@ const Calendar = ({
     setEditedEvent(null);
   };
 
+  // Create new event at specific time
+  const createNewEvent = (date: Date, hour?: number) => {
+    if (onAddEvent) {
+      // Your implementation for adding a new event
+      console.log("Create new event on", date, "at hour", hour);
+
+      // Here you would typically open a form or modal to create a new event
+      // For now, we'll just log the action
+      onAddEvent();
+    }
+  };
+
   // Delete event
   const deleteEvent = () => {
     if (selectedEvent && onDeleteEvent) {
@@ -387,6 +400,14 @@ const Calendar = ({
     return "";
   };
 
+  // Mock tasks data for the day view panel
+  const tasksData = [
+    { id: 1, task: "Review project proposal", completed: true },
+    { id: 2, task: "Send weekly report", completed: false },
+    { id: 3, task: "Prepare for tomorrow's meeting", completed: false },
+    { id: 4, task: "Call client about project status", completed: false },
+  ];
+
   return (
     <div className="bg-white border rounded-lg shadow-sm">
       <div className="p-4 border-b flex items-center justify-between">
@@ -397,81 +418,86 @@ const Calendar = ({
           >
             Today
           </button>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={goToPreviousPeriod}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+          {/* Centered navigation section */}
+          <div className="flex-grow flex justify-center items-center">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={goToPreviousPeriod}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
               >
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
-            <span className="text-lg font-medium text-center w-64">
-              {getHeaderText()}
-            </span>
-            <button
-              onClick={goToNextPeriod}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+              <span className="text-lg font-medium text-center w-64">
+                {getHeaderText()}
+              </span>
+              <button
+                onClick={goToNextPeriod}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
               >
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
-        <div className="flex border rounded overflow-hidden">
-          <button
-            className={`px-3 py-1 text-sm ${
-              viewMode === "year" ? "bg-gray-100" : ""
-            }`}
-            onClick={() => setViewMode("year")}
-          >
-            Year
-          </button>
-          <button
-            className={`px-3 py-1 text-sm ${
-              viewMode === "month" ? "bg-gray-100" : ""
-            }`}
-            onClick={() => setViewMode("month")}
-          >
-            Month
-          </button>
-          <button
-            className={`px-3 py-1 text-sm ${
-              viewMode === "week" ? "bg-gray-100" : ""
-            }`}
-            onClick={() => setViewMode("week")}
-          >
-            Week
-          </button>
-          <button
-            className={`px-3 py-1 text-sm ${
-              viewMode === "day" ? "bg-gray-100" : ""
-            }`}
-            onClick={() => setViewMode("day")}
-          >
-            Day
-          </button>
+        <div className="flex gap-2 items-center">
+          <div className="flex border rounded overflow-hidden">
+            <button
+              className={`px-3 py-1 text-sm ${
+                viewMode === "year" ? "bg-gray-100" : ""
+              }`}
+              onClick={() => setViewMode("year")}
+            >
+              Year
+            </button>
+            <button
+              className={`px-3 py-1 text-sm ${
+                viewMode === "month" ? "bg-gray-100" : ""
+              }`}
+              onClick={() => setViewMode("month")}
+            >
+              Month
+            </button>
+            <button
+              className={`px-3 py-1 text-sm ${
+                viewMode === "week" ? "bg-gray-100" : ""
+              }`}
+              onClick={() => setViewMode("week")}
+            >
+              Week
+            </button>
+            <button
+              className={`px-3 py-1 text-sm ${
+                viewMode === "day" ? "bg-gray-100" : ""
+              }`}
+              onClick={() => setViewMode("day")}
+            >
+              Day
+            </button>
+          </div>
         </div>
       </div>
 
@@ -497,13 +523,14 @@ const Calendar = ({
                 );
 
                 return (
-                  <div
+                  <motion.div
                     key={index}
                     className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
                     onClick={() => {
                       setCurrentDate(month);
                       setViewMode("month");
                     }}
+                    whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
                   >
                     <div className="bg-gray-50 p-2 border-b text-center font-medium">
                       {monthName}
@@ -520,22 +547,35 @@ const Calendar = ({
                           const hasEvents = hasEventsOnDate(dayObj.date);
 
                           return (
-                            <div
+                            <motion.div
                               key={i}
                               className={`p-1 relative ${
                                 !dayObj.isCurrentMonth ? "text-gray-300" : ""
                               }`}
+                              whileHover={
+                                hasEvents && dayObj.isCurrentMonth
+                                  ? { scale: 1.2 }
+                                  : {}
+                              }
                             >
                               {dayObj.date.getDate()}
                               {hasEvents && dayObj.isCurrentMonth && (
-                                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-blue-500"></div>
+                                <motion.div
+                                  className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 rounded-full bg-blue-500"
+                                  initial={{ opacity: 0.8 }}
+                                  animate={{
+                                    opacity: [0.5, 1, 0.5],
+                                    scale: [1, 1.2, 1],
+                                  }}
+                                  transition={{ repeat: Infinity, duration: 2 }}
+                                ></motion.div>
                               )}
-                            </div>
+                            </motion.div>
                           );
                         })}
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
@@ -595,10 +635,15 @@ const Calendar = ({
                         const colorClasses = getEventColorClasses(event.color);
 
                         return (
-                          <div
+                          <motion.div
                             key={event.id}
                             onClick={(e) => handleEventClick(event, e)}
-                            className={`${colorClasses.bg} p-1 rounded text-xs cursor-pointer hover:bg-opacity-80 transition-colors truncate`}
+                            className={`${colorClasses.bg} p-1 rounded text-xs cursor-pointer transition-colors truncate`}
+                            whileHover={{
+                              scale: 1.02,
+                              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                              backgroundColor: "rgba(255,255,255,0.8)",
+                            }}
                           >
                             <span
                               className={`inline-block w-2 h-2 rounded-full ${colorClasses.dot}`}
@@ -606,7 +651,7 @@ const Calendar = ({
                             <span className="ml-1">
                               {formatEventTime(event.startTime)} {event.title}
                             </span>
-                          </div>
+                          </motion.div>
                         );
                       })}
                       {dayEvents.length > 3 && (
@@ -701,7 +746,16 @@ const Calendar = ({
                     }`}
                   >
                     {timeSlots.map((_, slotIndex) => (
-                      <div key={slotIndex} className="h-16 border-b"></div>
+                      <div
+                        key={slotIndex}
+                        className="h-16 border-b hover:bg-gray-50 cursor-pointer"
+                        onClick={() =>
+                          createNewEvent(
+                            new Date(date.setHours(slotIndex)),
+                            slotIndex
+                          )
+                        }
+                      ></div>
                     ))}
 
                     {/* Events */}
@@ -724,7 +778,7 @@ const Calendar = ({
                       const colorClasses = getEventColorClasses(event.color);
 
                       return (
-                        <div
+                        <motion.div
                           key={event.id}
                           onClick={(e) => handleEventClick(event, e)}
                           style={{
@@ -733,26 +787,29 @@ const Calendar = ({
                             left: "4px",
                             right: "4px",
                           }}
-                          className={`${colorClasses.bg} absolute rounded p-1 cursor-pointer hover:bg-opacity-80 transition-colors overflow-hidden`}
+                          className={`${colorClasses.bg} absolute rounded p-1 cursor-pointer transition-colors overflow-hidden`}
+                          whileHover={{
+                            scale: 1.01,
+                            zIndex: 20,
+                            boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+                          }}
                         >
                           <div className="flex items-center gap-1 mb-1">
-                            <span
+                            <motion.span
                               className={`inline-block w-2 h-2 rounded-full ${colorClasses.dot}`}
-                            ></span>
-                            <span className="text-xs font-medium">
-                              {formatEventTime(event.startTime)} -{" "}
-                              {formatEventTime(event.endTime)}
+                              whileHover={{ scale: 1.5 }}
+                            ></motion.span>
+                            <span
+                              className={`text-xs font-medium ${colorClasses.text}`}
+                            >
+                              {event.title}
                             </span>
                           </div>
-                          <div className="text-xs font-medium">
-                            {event.title}
+                          <div className="text-xs">
+                            {formatEventTime(event.startTime)} -{" "}
+                            {formatEventTime(event.endTime)}
                           </div>
-                          {duration > 40 && event.location && (
-                            <div className="text-xs text-gray-600 mt-1">
-                              📍 {event.location}
-                            </div>
-                          )}
-                        </div>
+                        </motion.div>
                       );
                     })}
                   </div>
@@ -769,113 +826,277 @@ const Calendar = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="relative"
+            className="grid grid-cols-[1fr_auto]"
           >
-            <div className="grid grid-cols-[auto_1fr] border-b">
-              {/* Empty corner */}
-              <div className="border-r p-2 w-16"></div>
+            <div className="relative">
+              <div className="grid grid-cols-[auto_1fr] border-b">
+                {/* Empty corner */}
+                <div className="border-r p-2 w-16"></div>
 
-              {/* Day header */}
-              <div className="p-2 text-center border-r">
-                <div className="font-medium">
-                  {new Intl.DateTimeFormat("en-US", {
-                    weekday: "long",
-                    month: "long",
-                    day: "numeric",
-                  }).format(currentDate)}
+                {/* Day header */}
+                <div
+                  className={`p-2 text-center border-r ${
+                    new Date().toDateString() === currentDate.toDateString()
+                      ? "bg-blue-50"
+                      : ""
+                  }`}
+                >
+                  <div className="font-medium">
+                    {new Intl.DateTimeFormat("en-US", {
+                      weekday: "long",
+                    }).format(currentDate)}{" "}
+                    {currentDate.getDate()}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-[auto_1fr]">
+                {/* Time slots */}
+                <div className="border-r w-16">
+                  {timeSlots.map((time, index) => (
+                    <div
+                      key={index}
+                      className="h-16 border-b text-xs text-gray-500 text-right pr-2 pt-1"
+                    >
+                      {time}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Day grid with events */}
+                <div className="border-r relative">
+                  {/* Current time indicator */}
+                  <div
+                    className="absolute left-0 right-0 border-t border-red-500 z-10 pointer-events-none flex items-center"
+                    style={{
+                      top: `${getCurrentTimePosition()}px`,
+                    }}
+                  >
+                    <div className="w-2 h-2 rounded-full bg-red-500 -ml-1"></div>
+                  </div>
+
+                  {timeSlots.map((_, slotIndex) => (
+                    <div
+                      key={slotIndex}
+                      className="h-16 border-b hover:bg-gray-50 cursor-pointer"
+                      onClick={() =>
+                        createNewEvent(
+                          new Date(currentDate.setHours(slotIndex)),
+                          slotIndex
+                        )
+                      }
+                    ></div>
+                  ))}
+
+                  {/* Events */}
+                  {getEventsForDate(currentDate).map((event) => {
+                    const startHour = event.startTime.getHours();
+                    const startMinutes = event.startTime.getMinutes();
+                    const endHour = event.endTime.getHours();
+                    const endMinutes = event.endTime.getMinutes();
+
+                    const startPosition = calculateTimePosition(
+                      startHour,
+                      startMinutes
+                    );
+                    const endPosition = calculateTimePosition(
+                      endHour,
+                      endMinutes
+                    );
+                    const duration = endPosition - startPosition;
+
+                    const colorClasses = getEventColorClasses(event.color);
+
+                    return (
+                      <motion.div
+                        key={event.id}
+                        onClick={(e) => handleEventClick(event, e)}
+                        style={{
+                          top: `${startPosition}px`,
+                          height: `${duration}px`,
+                          left: "4px",
+                          right: "4px",
+                        }}
+                        className={`${colorClasses.bg} absolute rounded p-2 cursor-pointer transition-colors overflow-hidden`}
+                        whileHover={{
+                          scale: 1.01,
+                          zIndex: 20,
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                        }}
+                      >
+                        <div className="flex items-center gap-1 mb-1">
+                          <motion.span
+                            className={`inline-block w-3 h-3 rounded-full ${colorClasses.dot}`}
+                            whileHover={{ scale: 1.5 }}
+                          ></motion.span>
+                          <span
+                            className={`text-sm font-medium ${colorClasses.text}`}
+                          >
+                            {event.title}
+                          </span>
+                        </div>
+                        <div className="text-xs">
+                          {formatEventTime(event.startTime)} -{" "}
+                          {formatEventTime(event.endTime)}
+                        </div>
+                        {event.location && (
+                          <div className="text-xs mt-1 text-gray-600">
+                            📍 {event.location}
+                          </div>
+                        )}
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-[auto_1fr]">
-              {/* Time slots */}
-              <div className="border-r w-16">
-                {timeSlots.map((time, index) => (
-                  <div
-                    key={index}
-                    className="h-16 border-b text-xs text-gray-500 text-right pr-2 pt-1"
-                  >
-                    {time}
-                  </div>
-                ))}
-              </div>
-
-              {/* Current time indicator */}
-              <div
-                className="absolute left-0 right-0 border-t border-red-500 z-10 pointer-events-none flex items-center"
-                style={{
-                  top: `${getCurrentTimePosition()}px`,
-                  transform: `translateY(${HEADER_OFFSET}px)`,
-                }}
+            {/* Day view sidebar content */}
+            <div className="w-64 border-l p-4 bg-gray-50">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="space-y-6"
               >
-                <div className="w-2 h-2 rounded-full bg-red-500 -ml-1"></div>
-              </div>
-
-              {/* Day grid with events */}
-              <div className="relative">
-                {timeSlots.map((_, slotIndex) => (
-                  <div key={slotIndex} className="h-16 border-b"></div>
-                ))}
-
-                {/* Events */}
-                {getEventsForDate(currentDate).map((event) => {
-                  const startHour = event.startTime.getHours();
-                  const startMinutes = event.startTime.getMinutes();
-                  const endHour = event.endTime.getHours();
-                  const endMinutes = event.endTime.getMinutes();
-
-                  const startPosition = calculateTimePosition(
-                    startHour,
-                    startMinutes
-                  );
-                  const endPosition = calculateTimePosition(
-                    endHour,
-                    endMinutes
-                  );
-                  const duration = endPosition - startPosition;
-
-                  const colorClasses = getEventColorClasses(event.color);
-
-                  return (
-                    <div
-                      key={event.id}
-                      onClick={(e) => handleEventClick(event, e)}
-                      style={{
-                        top: `${startPosition}px`,
-                        height: `${duration}px`,
-                        left: "4px",
-                        right: "4px",
-                      }}
-                      className={`${colorClasses.bg} absolute rounded p-2 cursor-pointer hover:bg-opacity-80 transition-colors overflow-hidden`}
-                    >
-                      <div className="flex items-center gap-1 mb-1">
+                {/* Tasks widget */}
+                <div className="bg-white rounded-lg shadow-sm p-3">
+                  <h3 className="font-medium text-gray-800 mb-3 flex items-center">
+                    <CheckCircle size={16} className="mr-1 text-green-500" />
+                    Tasks for Today
+                  </h3>
+                  <div className="space-y-2">
+                    {tasksData.map((task) => (
+                      <motion.div
+                        key={task.id}
+                        className="flex items-center gap-2 text-sm"
+                        whileHover={{ x: 5 }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={task.completed}
+                          className="rounded text-blue-500 focus:ring-blue-500"
+                        />
                         <span
-                          className={`inline-block w-2 h-2 rounded-full ${colorClasses.dot}`}
-                        ></span>
-                        <span className="text-xs font-medium">
-                          {formatEventTime(event.startTime)} -{" "}
-                          {formatEventTime(event.endTime)}
+                          className={
+                            task.completed ? "line-through text-gray-400" : ""
+                          }
+                        >
+                          {task.task}
                         </span>
-                      </div>
-                      <div className="font-medium">{event.title}</div>
-                      {duration > 60 && (
-                        <>
-                          {event.description && (
-                            <div className="text-sm text-gray-600 mt-2">
-                              {event.description}
-                            </div>
-                          )}
-                          {event.location && (
-                            <div className="text-sm text-gray-600 mt-2">
-                              📍 {event.location}
-                            </div>
-                          )}
-                        </>
-                      )}
+                      </motion.div>
+                    ))}
+                    <div className="pt-2">
+                      <button className="text-blue-500 text-sm flex items-center">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="mr-1"
+                        >
+                          <line x1="12" y1="5" x2="12" y2="19"></line>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Add task
+                      </button>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                </div>
+
+                {/* Upcoming events preview */}
+                <div className="bg-white rounded-lg shadow-sm p-3">
+                  <h3 className="font-medium text-gray-800 mb-3 flex items-center">
+                    <CalendarIcon size={16} className="mr-1 text-blue-500" />
+                    Upcoming Events
+                  </h3>
+                  <div className="space-y-2">
+                    {events
+                      .filter(
+                        (event) =>
+                          event.startTime > new Date() &&
+                          event.startTime.toDateString() ===
+                            currentDate.toDateString()
+                      )
+                      .slice(0, 3)
+                      .map((event) => {
+                        const colorClasses = getEventColorClasses(event.color);
+                        return (
+                          <motion.div
+                            key={event.id}
+                            className={`${colorClasses.bg} p-2 rounded text-xs cursor-pointer`}
+                            whileHover={{
+                              scale: 1.02,
+                              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                            }}
+                            onClick={(e) => handleEventClick(event, e)}
+                          >
+                            <div className="flex items-center">
+                              <span
+                                className={`inline-block w-2 h-2 rounded-full ${colorClasses.dot} mr-1`}
+                              ></span>
+                              <span
+                                className={`font-medium ${colorClasses.text}`}
+                              >
+                                {formatEventTime(event.startTime)}
+                              </span>
+                            </div>
+                            <div className="mt-1">{event.title}</div>
+                          </motion.div>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                {/* Search */}
+                <div className="bg-white rounded-lg shadow-sm p-3">
+                  <div className="relative">
+                    <Search
+                      size={16}
+                      className="absolute left-2 top-2.5 text-gray-400"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Search events..."
+                      className="pl-8 pr-3 py-2 w-full border rounded text-sm focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Reminders */}
+                <div className="bg-white rounded-lg shadow-sm p-3">
+                  <h3 className="font-medium text-gray-800 mb-2 flex items-center">
+                    <BellRing size={16} className="mr-1 text-orange-500" />
+                    Reminders
+                  </h3>
+                  <div className="text-sm text-gray-600">
+                    <p>No reminders for today</p>
+                    <button className="text-blue-500 text-sm mt-2 flex items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-1"
+                      >
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                      Add reminder
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </motion.div>
         )}
