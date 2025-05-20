@@ -20,7 +20,7 @@ export function CustomToast({
   title,
   description,
   onDismiss,
-  duration = 4000,
+  duration = 3500,
   type = "success",
 }: CustomToastProps) {
   const [timeLeft, setTimeLeft] = useState(100);
