@@ -1,5 +1,3 @@
-// calendar/components/DaySidebar.tsx
-
 import { motion } from "framer-motion";
 import { Event } from "@/app/schemas/eventSchema";
 import { BellRing, Search, CheckCircle, CalendarIcon } from "lucide-react";
@@ -26,7 +24,7 @@ const DaySidebar = ({
   ];
 
   return (
-    <div className="w-64 border-l p-4 bg-gray-50">
+    <div className="w-64 border-l border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-800">
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -34,9 +32,12 @@ const DaySidebar = ({
         className="space-y-6"
       >
         {/* Tasks widget */}
-        <div className="bg-white rounded-lg shadow-sm p-3">
-          <h3 className="font-medium text-gray-800 mb-3 flex items-center">
-            <CheckCircle size={16} className="mr-1 text-green-500" />
+        <div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm p-3">
+          <h3 className="font-medium text-gray-800 dark:text-gray-100 mb-3 flex items-center">
+            <CheckCircle
+              size={16}
+              className="mr-1 text-green-500 dark:text-green-400"
+            />
             Tasks for Today
           </h3>
           <div className="space-y-2">
@@ -49,17 +50,21 @@ const DaySidebar = ({
                 <input
                   type="checkbox"
                   checked={task.completed}
-                  className="rounded text-blue-500 focus:ring-blue-500"
+                  className="rounded text-blue-500 dark:text-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 dark:border-gray-500"
                 />
                 <span
-                  className={task.completed ? "line-through text-gray-400" : ""}
+                  className={
+                    task.completed
+                      ? "line-through text-gray-400 dark:text-gray-400"
+                      : "text-gray-700 dark:text-gray-200"
+                  }
                 >
                   {task.task}
                 </span>
               </motion.div>
             ))}
             <div className="pt-2">
-              <button className="text-blue-500 text-sm flex items-center">
+              <button className="text-blue-500 dark:text-blue-400 text-sm flex items-center hover:text-blue-600 dark:hover:text-blue-300 transition-colors">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="16"
@@ -82,9 +87,12 @@ const DaySidebar = ({
         </div>
 
         {/* Upcoming events preview */}
-        <div className="bg-white rounded-lg shadow-sm p-3">
-          <h3 className="font-medium text-gray-800 mb-3 flex items-center">
-            <CalendarIcon size={16} className="mr-1 text-blue-500" />
+        <div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm p-3">
+          <h3 className="font-medium text-gray-800 dark:text-gray-100 mb-3 flex items-center">
+            <CalendarIcon
+              size={16}
+              className="mr-1 text-blue-500 dark:text-blue-400"
+            />
             Upcoming Events
           </h3>
           <div className="space-y-2">
@@ -119,33 +127,47 @@ const DaySidebar = ({
                   </motion.div>
                 );
               })}
+            {events.filter(
+              (event) =>
+                event.startTime > new Date() &&
+                event.startTime.toDateString() === currentDate.toDateString()
+            ).length === 0 && (
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                No upcoming events for today
+              </p>
+            )}
           </div>
         </div>
 
         {/* Search */}
-        <div className="bg-white rounded-lg shadow-sm p-3">
+        <div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm p-3">
           <div className="relative">
             <Search
               size={16}
-              className="absolute left-2 top-2.5 text-gray-400"
+              className="absolute left-2 top-2.5 text-gray-400 dark:text-gray-500"
             />
             <input
               type="text"
               placeholder="Search events..."
-              className="pl-8 pr-3 py-2 w-full border rounded text-sm focus:ring-blue-500 focus:border-blue-500"
+              className="pl-8 pr-3 py-2 w-full border dark:border-gray-600 rounded text-sm 
+                focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400
+                bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             />
           </div>
         </div>
 
         {/* Reminders */}
-        <div className="bg-white rounded-lg shadow-sm p-3">
-          <h3 className="font-medium text-gray-800 mb-2 flex items-center">
-            <BellRing size={16} className="mr-1 text-orange-500" />
+        <div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm p-3">
+          <h3 className="font-medium text-gray-800 dark:text-gray-100 mb-2 flex items-center">
+            <BellRing
+              size={16}
+              className="mr-1 text-orange-500 dark:text-orange-400"
+            />
             Reminders
           </h3>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600 dark:text-gray-300">
             <p>No reminders for today</p>
-            <button className="text-blue-500 text-sm mt-2 flex items-center">
+            <button className="text-blue-500 dark:text-blue-400 text-sm mt-2 flex items-center hover:text-blue-600 dark:hover:text-blue-300 transition-colors">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="16"

@@ -50,12 +50,44 @@ export const colorOptions: ColorOption[] = [
 ];
 
 // Get color classes for an event
-export const getEventColorClasses = (colorName: string) => {
-  const color =
-    colorOptions.find((c) => c.name === colorName) || colorOptions[0];
-  return {
-    bg: color.bg,
-    dot: color.dot,
-    text: color.text,
-  };
+
+export const getEventColorClasses = (color: string) => {
+  switch (color) {
+    case "blue":
+      return {
+        bg: "bg-blue-100 dark:bg-blue-900/50",
+        text: "text-blue-800 dark:text-blue-200",
+        dot: "bg-blue-500",
+      };
+    case "green":
+      return {
+        bg: "bg-green-100 dark:bg-green-900/50",
+        text: "text-green-800 dark:text-green-200",
+        dot: "bg-green-500",
+      };
+    case "red":
+      return {
+        bg: "bg-red-100 dark:bg-red-900/50",
+        text: "text-red-800 dark:text-red-200",
+        dot: "bg-red-500",
+      };
+    case "yellow":
+      return {
+        bg: "bg-yellow-100 dark:bg-yellow-900/50",
+        text: "text-yellow-800 dark:text-yellow-200",
+        dot: "bg-yellow-500",
+      };
+    case "purple":
+      return {
+        bg: "bg-purple-100 dark:bg-purple-900/50",
+        text: "text-purple-800 dark:text-purple-200",
+        dot: "bg-purple-500",
+      };
+    default:
+      return {
+        bg: "bg-gray-100 dark:bg-gray-700",
+        text: "text-gray-800 dark:text-gray-200",
+        dot: "bg-gray-500",
+      };
+  }
 };

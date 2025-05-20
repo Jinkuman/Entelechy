@@ -42,9 +42,9 @@ const WeekView = ({
       transition={{ duration: 0.2 }}
       className="relative"
     >
-      <div className="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_1fr_1fr] border-b">
+      <div className="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_1fr_1fr] border-b dark:border-gray-700">
         {/* Empty corner */}
-        <div className="border-r p-2 w-16"></div>
+        <div className="border-r p-2 w-16 dark:border-gray-700"></div>
 
         {/* Day headers */}
         {daysOfWeek.map((date, index) => {
@@ -57,15 +57,19 @@ const WeekView = ({
           return (
             <div
               key={index}
-              className={`p-2 text-center border-r cursor-pointer hover:bg-gray-50 transition-colors ${
-                isToday ? "bg-blue-50" : ""
-              }`}
+              className={`p-2 text-center border-r cursor-pointer transition-colors dark:border-gray-700 
+                ${
+                  isToday
+                    ? "bg-blue-50 dark:bg-blue-900/30"
+                    : "dark:bg-gray-800"
+                } 
+                hover:bg-gray-50 dark:hover:bg-gray-700`}
               onClick={() => {
                 setCurrentDate(date);
                 setViewMode("day");
               }}
             >
-              <div className="font-medium">
+              <div className="font-medium dark:text-gray-200">
                 {dayName} {dayNumber}
               </div>
             </div>
@@ -75,11 +79,11 @@ const WeekView = ({
 
       <div className="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_1fr_1fr]">
         {/* Time slots */}
-        <div className="border-r w-16">
+        <div className="border-r w-16 dark:border-gray-700">
           {timeSlots.map((time, index) => (
             <div
               key={index}
-              className="h-16 border-b text-xs text-gray-500 text-right pr-2 pt-1"
+              className="h-16 border-b text-xs text-gray-500 dark:text-gray-400 text-right pr-2 pt-1 dark:border-gray-700"
             >
               {time}
             </div>
@@ -94,12 +98,17 @@ const WeekView = ({
           return (
             <div
               key={dayIndex}
-              className={`border-r relative ${isToday ? "bg-blue-50" : ""}`}
+              className={`border-r relative dark:border-gray-700 
+                ${
+                  isToday
+                    ? "bg-blue-50 dark:bg-blue-900/30"
+                    : "dark:bg-gray-800"
+                }`}
             >
               {timeSlots.map((_, slotIndex) => (
                 <div
                   key={slotIndex}
-                  className="h-16 border-b hover:bg-gray-50 cursor-pointer"
+                  className="h-16 border-b hover:bg-gray-50 dark:hover:bg-gray-700 dark:border-gray-700 cursor-pointer"
                   onClick={() =>
                     createNewEvent(
                       new Date(new Date(date).setHours(slotIndex)),

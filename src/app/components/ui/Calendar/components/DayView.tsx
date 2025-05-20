@@ -37,19 +37,19 @@ const DayView = ({
       className="grid grid-cols-[1fr_auto]"
     >
       <div className="relative">
-        <div className="grid grid-cols-[auto_1fr] border-b">
+        <div className="grid grid-cols-[auto_1fr] border-b dark:border-gray-700">
           {/* Empty corner */}
-          <div className="border-r p-2 w-16"></div>
+          <div className="border-r p-2 w-16 dark:border-gray-700"></div>
 
           {/* Day header */}
           <div
-            className={`p-2 text-center border-r ${
+            className={`p-2 text-center border-r dark:border-gray-700 ${
               new Date().toDateString() === currentDate.toDateString()
-                ? "bg-blue-50"
-                : ""
+                ? "bg-blue-50 dark:bg-blue-900/30"
+                : "dark:bg-gray-800"
             }`}
           >
-            <div className="font-medium">
+            <div className="font-medium dark:text-white">
               {new Intl.DateTimeFormat("en-US", {
                 weekday: "long",
               }).format(currentDate)}{" "}
@@ -60,11 +60,11 @@ const DayView = ({
 
         <div className="grid grid-cols-[auto_1fr]">
           {/* Time slots */}
-          <div className="border-r w-16">
+          <div className="border-r w-16 dark:border-gray-700">
             {timeSlots.map((time, index) => (
               <div
                 key={index}
-                className="h-16 border-b text-xs text-gray-500 text-right pr-2 pt-1"
+                className="h-16 border-b text-xs text-gray-500 dark:text-gray-400 text-right pr-2 pt-1 dark:border-gray-700"
               >
                 {time}
               </div>
@@ -72,7 +72,7 @@ const DayView = ({
           </div>
 
           {/* Day grid with events */}
-          <div className="border-r relative">
+          <div className="border-r relative dark:border-gray-700">
             {/* Current time indicator */}
             <div
               className="absolute left-0 right-0 border-t border-red-500 z-10 pointer-events-none flex items-center"
@@ -86,7 +86,7 @@ const DayView = ({
             {timeSlots.map((_, slotIndex) => (
               <div
                 key={slotIndex}
-                className="h-16 border-b hover:bg-gray-50 cursor-pointer"
+                className="h-16 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
                 onClick={() =>
                   createNewEvent(
                     new Date(new Date(currentDate).setHours(slotIndex)),
@@ -145,7 +145,7 @@ const DayView = ({
                     {formatEventTime(event.endTime)}
                   </div>
                   {event.location && (
-                    <div className="text-xs mt-1 text-gray-600">
+                    <div className="text-xs mt-1 text-gray-600 dark:text-gray-300">
                       📍 {event.location}
                     </div>
                   )}

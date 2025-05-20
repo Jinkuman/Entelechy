@@ -81,7 +81,7 @@ const EventSidebar = ({
 
   return (
     <motion.div
-      className="fixed top-0 right-0 h-full w-1/3 bg-white shadow-xl border-l p-6 z-40 flex flex-col"
+      className="fixed top-0 right-0 h-full w-1/3 bg-white dark:bg-gray-800 shadow-xl border-l dark:border-gray-700 p-6 z-40 flex flex-col"
       initial={{ x: "100%" }}
       animate={
         isClosing
@@ -107,7 +107,7 @@ const EventSidebar = ({
         <>
           <div className="flex justify-between items-center mb-6">
             <motion.h2
-              className="text-xl font-semibold"
+              className="text-xl font-semibold dark:text-white"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
@@ -123,10 +123,9 @@ const EventSidebar = ({
                     endTime: new Date(selectedEvent.endTime),
                   })
                 }
-                className="p-2 rounded-full hover:bg-gray-100"
+                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
                 whileHover={{
                   scale: 1.1,
-                  backgroundColor: "rgba(243, 244, 246, 1)",
                 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -147,10 +146,9 @@ const EventSidebar = ({
               </motion.button>
               <motion.button
                 onClick={() => setShowEventSidebar(false)}
-                className="p-2 rounded-full hover:bg-gray-100"
+                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
                 whileHover={{
                   scale: 1.1,
-                  backgroundColor: "rgba(243, 244, 246, 1)",
                 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -167,7 +165,9 @@ const EventSidebar = ({
           >
             {/* Event Title */}
             <div>
-              <h3 className="text-2xl font-bold">{selectedEvent.title}</h3>
+              <h3 className="text-2xl font-bold dark:text-white">
+                {selectedEvent.title}
+              </h3>
 
               {/* Color indicator */}
               <div className="mt-2 flex items-center">
@@ -176,7 +176,7 @@ const EventSidebar = ({
                     getEventColorClasses(selectedEvent.color).dot
                   } mr-2`}
                 ></div>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
                   {selectedEvent.allDay
                     ? "All day"
                     : `${formatEventTime(
@@ -187,10 +187,10 @@ const EventSidebar = ({
             </div>
 
             {/* Date */}
-            <div className="flex items-center text-gray-700">
+            <div className="flex items-center text-gray-700 dark:text-gray-300">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-3 text-gray-500"
+                className="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -214,10 +214,10 @@ const EventSidebar = ({
 
             {/* Time */}
             {!selectedEvent.allDay && (
-              <div className="flex items-center text-gray-700">
+              <div className="flex items-center text-gray-700 dark:text-gray-300">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-3 text-gray-500"
+                  className="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -238,10 +238,10 @@ const EventSidebar = ({
 
             {/* Location */}
             {selectedEvent.location && (
-              <div className="flex items-center text-gray-700">
+              <div className="flex items-center text-gray-700 dark:text-gray-300">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-3 text-gray-500"
+                  className="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -266,10 +266,10 @@ const EventSidebar = ({
             {/* Description */}
             {selectedEvent.description && (
               <div className="mt-6">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Description
                 </h4>
-                <p className="text-gray-700 whitespace-pre-line">
+                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
                   {selectedEvent.description}
                 </p>
               </div>
@@ -278,10 +278,10 @@ const EventSidebar = ({
             {/* Notes */}
             {selectedEvent.notes && (
               <div className="mt-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Notes
                 </h4>
-                <p className="text-gray-700 whitespace-pre-line">
+                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
                   {selectedEvent.notes}
                 </p>
               </div>
@@ -292,7 +292,7 @@ const EventSidebar = ({
           <div className="mt-6 flex justify-between">
             <motion.button
               onClick={handleDelete}
-              className="px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200"
+              className="px-4 py-2 bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-200 rounded-md hover:bg-red-200 dark:hover:bg-red-800"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
@@ -306,7 +306,7 @@ const EventSidebar = ({
                   endTime: new Date(selectedEvent.endTime),
                 })
               }
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
@@ -319,7 +319,7 @@ const EventSidebar = ({
         <>
           <div className="flex justify-between items-center mb-6">
             <motion.h2
-              className="text-xl font-semibold"
+              className="text-xl font-semibold dark:text-white"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
@@ -328,10 +328,9 @@ const EventSidebar = ({
             </motion.h2>
             <motion.button
               onClick={() => setShowEventSidebar(false)}
-              className="p-2 rounded-full hover:bg-gray-100"
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 dark:text-gray-300"
               whileHover={{
                 scale: 1.1,
-                backgroundColor: "rgba(243, 244, 246, 1)",
               }}
               whileTap={{ scale: 0.95 }}
             >
@@ -347,12 +346,12 @@ const EventSidebar = ({
           >
             {/* Event Title */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Event Title
               </label>
               <input
                 type="text"
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 placeholder="Enter event title"
                 value={editedEvent.title || ""}
                 onChange={(e) => handleFieldChange("title", e.target.value)}
@@ -361,11 +360,11 @@ const EventSidebar = ({
 
             {/* Description */}
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Description
               </label>
               <textarea
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 rows={3}
                 placeholder="Add description"
                 value={editedEvent.description || ""}
@@ -380,13 +379,13 @@ const EventSidebar = ({
               <input
                 type="checkbox"
                 id="allDay"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded dark:border-gray-600 dark:bg-gray-700"
                 checked={editedEvent.allDay || false}
                 onChange={(e) => handleFieldChange("allDay", e.target.checked)}
               />
               <label
                 htmlFor="allDay"
-                className="ml-2 block text-sm text-gray-700"
+                className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
               >
                 All day event
               </label>
@@ -395,12 +394,12 @@ const EventSidebar = ({
             {/* Date and Time */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Start Date
                 </label>
                 <input
                   type="date"
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   value={formatDateForInput(editedEvent.startTime as Date)}
                   onChange={(e) =>
                     handleDateTimeChange("startTime", "date", e.target.value)
@@ -408,14 +407,14 @@ const EventSidebar = ({
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Start Time
                 </label>
                 <input
                   type="time"
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${
                     editedEvent.allDay
-                      ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                      ? "bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                       : ""
                   }`}
                   value={formatTimeForInput(editedEvent.startTime as Date)}
@@ -429,12 +428,12 @@ const EventSidebar = ({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   End Date
                 </label>
                 <input
                   type="date"
-                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   value={formatDateForInput(editedEvent.endTime as Date)}
                   onChange={(e) =>
                     handleDateTimeChange("endTime", "date", e.target.value)
@@ -442,14 +441,14 @@ const EventSidebar = ({
                 />
               </div>
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   End Time
                 </label>
                 <input
                   type="time"
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${
                     editedEvent.allDay
-                      ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                      ? "bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
                       : ""
                   }`}
                   value={formatTimeForInput(editedEvent.endTime as Date)}
@@ -463,12 +462,12 @@ const EventSidebar = ({
 
             {/* Location */}
             <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Location
               </label>
               <input
                 type="text"
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 placeholder="Add location"
                 value={editedEvent.location || ""}
                 onChange={(e) => handleFieldChange("location", e.target.value)}
@@ -477,11 +476,11 @@ const EventSidebar = ({
 
             {/* Notes */}
             <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Notes
               </label>
               <textarea
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                 rows={2}
                 placeholder="Add notes"
                 value={editedEvent.notes || ""}
@@ -491,7 +490,7 @@ const EventSidebar = ({
 
             {/* Color Selection */}
             <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Color
               </label>
               <div className="flex flex-wrap gap-3">
@@ -506,7 +505,7 @@ const EventSidebar = ({
                     style={{
                       boxShadow:
                         editedEvent.color === color.name
-                          ? "0 0 0 2px black"
+                          ? "0 0 0 2px white"
                           : "none",
                     }}
                   >
@@ -533,7 +532,7 @@ const EventSidebar = ({
           <div className="mt-6 flex justify-between">
             <motion.button
               onClick={() => setEditedEvent(null)}
-              className="px-4 py-2 border rounded-md text-gray-700 hover:bg-gray-50"
+              className="px-4 py-2 border dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
@@ -541,7 +540,7 @@ const EventSidebar = ({
             </motion.button>
             <motion.button
               onClick={handleSave}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-800"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
