@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Sidebar } from "./components/sidebar";
 import "./globals.css";
+import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,6 +37,7 @@ export default function RootLayout({
           {/* main area scrolls independently */}
           <main className="flex-1 h-full overflow-auto">{children}</main>
         </div>
+        <Toaster position="bottom-right" />
       </body>
     </html>
   );

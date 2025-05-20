@@ -1,171 +1,234 @@
 // pages/calendar/page.tsx
 "use client";
 
-import { useState } from "react";
-import Calendar from "@/app/components/ui/Calendar/calendar";
+import { useState, useEffect, useRef } from "react";
+import Calendar from "@/app/components/ui/calendar/calendar";
 import { Event } from "@/app/schemas/eventSchema";
+import supabase from "@/lib/supabaseClient";
+import { motion } from "framer-motion";
+import { Plus } from "lucide-react";
 
 const CalendarPage = () => {
-  // Mock events data using the Event type
-  const [events, setEvents] = useState<Event[]>([
-    {
-      id: 1,
-      user_id: 1,
-      title: "Team Weekly Sync",
-      description: "Regular team sync to discuss progress and blockers",
-      startTime: new Date(2025, 4, 14, 10, 0), // May 14, 2025, 10:00 AM
-      endTime: new Date(2025, 4, 14, 11, 0), // May 14, 2025, 11:00 AM
-      allDay: false,
-      location: "Conference Room A",
-      notes: "Bring project updates",
-      color: "blue",
-      created_at: new Date(2025, 3, 1),
-      updated_at: new Date(2025, 3, 1),
-    },
-    {
-      id: 2,
-      user_id: 1,
-      title: "The Amazing Hubble",
-      description: "Presentation about the Hubble Space Telescope",
-      startTime: new Date(2025, 4, 14, 13, 0), // May 14, 2025, 1:00 PM
-      endTime: new Date(2025, 4, 14, 14, 30), // May 14, 2025, 2:30 PM
-      allDay: false,
-      location: "Auditorium",
-      notes: "Prepare questions for Q&A",
-      color: "purple",
-      created_at: new Date(2025, 3, 5),
-      updated_at: new Date(2025, 3, 5),
-    },
-    {
-      id: 3,
-      user_id: 2,
-      title: "Choosing A Quality Cookware Set",
-      description: "Workshop on selecting the right cookware",
-      startTime: new Date(2025, 4, 15, 11, 0), // May 15, 2025, 11:00 AM
-      endTime: new Date(2025, 4, 15, 12, 30), // May 15, 2025, 12:30 PM
-      allDay: false,
-      location: "Kitchen Lab",
-      notes: "",
-      color: "green",
-      created_at: new Date(2025, 3, 10),
-      updated_at: new Date(2025, 3, 10),
-    },
-    {
-      id: 4,
-      user_id: 1,
-      title: "Astronomy Binoculars: A Great Alternative",
-      description: "Discussion about using binoculars for astronomy",
-      startTime: new Date(2025, 4, 15, 15, 0), // May 15, 2025, 3:00 PM
-      endTime: new Date(2025, 4, 15, 17, 0), // May 15, 2025, 5:00 PM
-      allDay: false,
-      location: "Observatory",
-      notes: "Bring your binoculars if you have them",
-      color: "pink",
-      created_at: new Date(2025, 3, 12),
-      updated_at: new Date(2025, 3, 12),
-    },
-    {
-      id: 5,
-      user_id: 3,
-      title: "All-Day Planning Session",
-      description: "Annual planning session for the team",
-      startTime: new Date(2025, 4, 16, 0, 0), // May 16, 2025, 12:00 AM
-      endTime: new Date(2025, 4, 16, 23, 59), // May 16, 2025, 11:59 PM
-      allDay: true,
-      location: "Main Conference Room",
-      notes: "Prepare your department's annual goals",
-      color: "yellow",
-      created_at: new Date(2025, 3, 15),
-      updated_at: new Date(2025, 3, 15),
-    },
-    {
-      id: 6,
-      user_id: 2,
-      title: "Shooting Stars",
-      description: "Meteor shower viewing event",
-      startTime: new Date(2025, 4, 17, 22, 0), // May 17, 2025, 10:00 PM
-      endTime: new Date(2025, 4, 18, 1, 0), // May 18, 2025, 1:00 AM
-      allDay: false,
-      location: "Hilltop Park",
-      notes: "Bring warm clothes and blankets",
-      color: "indigo",
-      created_at: new Date(2025, 3, 20),
-      updated_at: new Date(2025, 3, 20),
-    },
-    {
-      id: 7,
-      user_id: 1,
-      title: "The Universe Through A Child's Eyes",
-      description: "Workshop for teaching astronomy to children",
-      startTime: new Date(2025, 4, 18, 9, 0), // May 18, 2025, 9:00 AM
-      endTime: new Date(2025, 4, 18, 11, 0), // May 18, 2025, 11:00 AM
-      allDay: false,
-      location: "Children's Museum",
-      notes: "",
-      color: "orange",
-      created_at: new Date(2025, 3, 25),
-      updated_at: new Date(2025, 3, 25),
-    },
-    {
-      id: 8,
-      user_id: 3,
-      title: "Product Launch",
-      description: "Official launch of our new product line",
-      startTime: new Date(2025, 4, 20, 14, 0), // May 20, 2025, 2:00 PM
-      endTime: new Date(2025, 4, 20, 16, 0), // May 20, 2025, 4:00 PM
-      allDay: false,
-      location: "Main Auditorium",
-      notes: "Press will be present",
-      color: "red",
-      created_at: new Date(2025, 4, 1),
-      updated_at: new Date(2025, 4, 1),
-    },
-    {
-      id: 9,
-      user_id: 2,
-      title: "Quarterly Review",
-      description: "Review of Q2 performance",
-      startTime: new Date(2025, 4, 21, 9, 0), // May 21, 2025, 9:00 AM
-      endTime: new Date(2025, 4, 21, 12, 0), // May 21, 2025, 12:00 PM
-      allDay: false,
-      location: "Board Room",
-      notes: "Prepare department reports",
-      color: "blue",
-      created_at: new Date(2025, 4, 5),
-      updated_at: new Date(2025, 4, 5),
-    },
-  ]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  // Handle adding a new event
-  const handleAddEvent = () => {
-    // This would typically open a form or modal to add a new event
-    console.log("Add event");
+  // Create a ref to hold the function from the Calendar component
+  const openCreateSidebarRef = useRef<() => void>(() => {});
+
+  // Fetch the current user and their events
+  useEffect(() => {
+    const fetchUserAndEvents = async () => {
+      try {
+        // Get the current user
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          setError("Please log in to view your calendar");
+          setLoading(false);
+          return;
+        }
+
+        setUserId(user.id);
+
+        // Fetch events for this user
+        const { data: eventsData, error: eventsError } = await supabase
+          .from("events")
+          .select("*")
+          .eq("user_id", user.id);
+
+        if (eventsError) {
+          throw eventsError;
+        }
+
+        // Transform the data to match our Event type
+        const transformedEvents: Event[] = eventsData.map((event: any) => ({
+          id: event.id,
+          user_id: event.user_id,
+          title: event.title,
+          description: event.description || "",
+          startTime: new Date(event.start_time),
+          endTime: new Date(event.end_time),
+          allDay: event.all_day,
+          location: event.location || "",
+          notes: event.notes || null,
+          color: event.color || "blue",
+          created_at: new Date(event.created_at),
+          updated_at: new Date(event.updated_at),
+        }));
+
+        setEvents(transformedEvents);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError("Failed to load calendar data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserAndEvents();
+  }, []);
+
+  // This function calls the Calendar component's method to open the sidebar
+  const openCreateEventSidebar = () => {
+    if (openCreateSidebarRef.current) {
+      openCreateSidebarRef.current();
+    }
   };
 
-  // Handle updating an event
-  const handleUpdateEvent = (updatedEvent: Event) => {
-    setEvents(
-      events.map((event) =>
-        event.id === updatedEvent.id ? updatedEvent : event
-      )
-    );
+  // Handle adding a new event - only called when the form is submitted
+  const handleAddEvent = async (
+    newEventData: Omit<Event, "id" | "user_id" | "created_at" | "updated_at">
+  ) => {
+    if (!userId) {
+      console.error("Cannot create event: No user ID available");
+      throw new Error("You must be logged in to create events");
+    }
+
+    try {
+      console.log("Creating event with data:", newEventData);
+      console.log("User ID:", userId); // Log the user ID to check its format
+
+      // Validate that userId is a valid UUID
+      const uuidRegex =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(userId)) {
+        console.error("Invalid user ID format:", userId);
+        throw new Error("Invalid user ID format");
+      }
+
+      // Convert to database format
+      const dbEvent = {
+        user_id: userId,
+        title: newEventData.title,
+        description: newEventData.description || "",
+        start_time: newEventData.startTime.toISOString(),
+        end_time: newEventData.endTime.toISOString(),
+        all_day: newEventData.allDay,
+        location: newEventData.location || "",
+        notes: newEventData.notes || "",
+        color: newEventData.color || "blue",
+      };
+
+      console.log("Sending to database:", dbEvent);
+
+      const { data, error } = await supabase
+        .from("events")
+        .insert(dbEvent)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Supabase error:", error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+
+      if (!data) {
+        throw new Error("No data returned from database");
+      }
+
+      console.log("Event created successfully:", data);
+
+      // Add the new event to state
+      const createdEvent: Event = {
+        id: data.id,
+        user_id: data.user_id,
+        title: data.title,
+        description: data.description || "",
+        startTime: new Date(data.start_time),
+        endTime: new Date(data.end_time),
+        allDay: data.all_day,
+        location: data.location || "",
+        notes: data.notes || "",
+        color: data.color || "blue",
+        created_at: new Date(data.created_at),
+        updated_at: new Date(data.updated_at),
+      };
+
+      setEvents([...events, createdEvent]);
+      return data.id; // Return the ID of the created event
+    } catch (err) {
+      console.error("Error creating event:", err);
+      if (err instanceof Error) {
+        throw new Error(`Error creating event: ${err.message}`);
+      } else {
+        throw new Error("Unknown error creating event");
+      }
+    }
   };
 
-  // Handle deleting an event
-  const handleDeleteEvent = (eventId: number) => {
-    setEvents(events.filter((event) => event.id !== eventId));
+  // Rest of the functions remain unchanged
+  const handleUpdateEvent = async (updatedEvent: Event) => {
+    try {
+      // Convert to database format
+      const dbEvent = {
+        title: updatedEvent.title,
+        description: updatedEvent.description,
+        start_time: updatedEvent.startTime.toISOString(),
+        end_time: updatedEvent.endTime.toISOString(),
+        all_day: updatedEvent.allDay,
+        location: updatedEvent.location,
+        notes: updatedEvent.notes,
+        color: updatedEvent.color,
+      };
+
+      const { error } = await supabase
+        .from("events")
+        .update(dbEvent)
+        .eq("id", updatedEvent.id);
+
+      if (error) throw error;
+
+      setEvents(
+        events.map((event) =>
+          event.id === updatedEvent.id ? updatedEvent : event
+        )
+      );
+    } catch (err) {
+      console.error("Error updating event:", err);
+    }
   };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    try {
+      const { error } = await supabase
+        .from("events")
+        .delete()
+        .eq("id", eventId);
+
+      if (error) throw error;
+
+      setEvents(events.filter((event) => event.id !== eventId));
+    } catch (err) {
+      console.error("Error deleting event:", err);
+    }
+  };
+
+  if (loading) {
+    return <div className="p-6 text-center">Loading calendar...</div>;
+  }
+
+  if (error) {
+    return <div className="p-6 text-center text-red-600">{error}</div>;
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Calendar</h1>
-        <button
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          onClick={handleAddEvent}
+
+        <motion.button
+          className="cursor-pointer rounded-full p-3 bg-blue-600 text-white shadow-lg"
+          onClick={openCreateEventSidebar}
+          whileHover={{ scale: 1.1, rotate: 90 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ duration: 0.3 }}
         >
-          Add Event
-        </button>
+          <Plus size={24} />
+        </motion.button>
       </div>
 
       <Calendar
@@ -173,6 +236,7 @@ const CalendarPage = () => {
         onAddEvent={handleAddEvent}
         onUpdateEvent={handleUpdateEvent}
         onDeleteEvent={handleDeleteEvent}
+        openCreateSidebarRef={openCreateSidebarRef}
       />
     </div>
   );
