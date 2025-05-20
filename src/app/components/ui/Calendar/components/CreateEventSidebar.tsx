@@ -6,7 +6,8 @@ import { useState } from "react";
 import { Event } from "@/app/schemas/eventSchema";
 import { formatDateForInput, formatTimeForInput } from "./utils/dateUtils";
 import { colorOptions } from "./utils/colorUtils";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
+import { showSuccessToast, showErrorToast } from "@/app/components/ui/sonner";
 
 interface CreateEventSidebarProps {
   showSidebar: boolean;
@@ -110,46 +111,8 @@ const CreateEventSidebar = ({
       // Start closing animation
       setIsClosing(true);
 
-      // Show toast notification
-      toast.custom(
-        (t: any) => (
-          <motion.div
-            initial={{ opacity: 0, y: 50, x: 0, scale: 0.3 }}
-            animate={{ opacity: 1, y: 0, x: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.5 }}
-            className="bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-md"
-            style={{
-              position: "fixed",
-              bottom: "20px",
-              right: "20px",
-              zIndex: 9999,
-            }}
-          >
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div
-                  className={`w-8 h-8 rounded-full bg-green-100 flex items-center justify-center`}
-                >
-                  <Check className="h-5 w-5 text-green-600" />
-                </div>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-900">
-                  Event Created
-                </p>
-                <p className="text-sm text-gray-500 mt-1">{newEvent.title}</p>
-              </div>
-              <button
-                onClick={() => toast.dismiss(t.id)}
-                className="ml-auto flex-shrink-0 text-gray-400 hover:text-gray-500"
-              >
-                <X size={18} />
-              </button>
-            </div>
-          </motion.div>
-        ),
-        { duration: 4000 }
-      );
+      // Show toast notification using sonner directly
+      showSuccessToast("Event Created", newEvent.title);
 
       // Reset form
       setTimeout(() => {
@@ -170,6 +133,12 @@ const CreateEventSidebar = ({
       console.error("Error in form submission:", err);
       setError(err instanceof Error ? err.message : "Failed to create event");
       setIsSubmitting(false);
+
+      // Show error toast
+      showErrorToast(
+        "Error Creating Event",
+        err instanceof Error ? err.message : "Failed to create event"
+      );
     }
   };
 

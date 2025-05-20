@@ -86,17 +86,6 @@ const WeekView = ({
           ))}
         </div>
 
-        {/* Current time indicator */}
-        <div
-          className="absolute left-0 right-0 border-t border-red-500 z-10 pointer-events-none flex items-center"
-          style={{
-            top: `${getCurrentTimePosition()}px`,
-            transform: `translateY(${HEADER_OFFSET}px)`,
-          }}
-        >
-          <div className="w-2 h-2 rounded-full bg-red-500 -ml-1"></div>
-        </div>
-
         {/* Week grid with events */}
         {daysOfWeek.map((date, dayIndex) => {
           const dayEvents = getEventsForDate(events, date);
