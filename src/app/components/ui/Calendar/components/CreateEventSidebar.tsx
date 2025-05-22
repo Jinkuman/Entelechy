@@ -288,7 +288,7 @@ const CreateEventSidebar = ({
             transition={{ delay: 0.3 }}
           >
             {/* Event Title */}
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Event Title{" "}
                 <span className="text-red-500 dark:text-red-400">*</span>
@@ -304,7 +304,7 @@ const CreateEventSidebar = ({
             </div>
 
             {/* Description */}
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Description
               </label>
@@ -338,7 +338,7 @@ const CreateEventSidebar = ({
 
             {/* Date and Time */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Start Date
                 </label>
@@ -351,7 +351,7 @@ const CreateEventSidebar = ({
                   }
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Start Time
                 </label>
@@ -372,7 +372,7 @@ const CreateEventSidebar = ({
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   End Date
                 </label>
@@ -385,7 +385,7 @@ const CreateEventSidebar = ({
                   }
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   End Time
                 </label>
@@ -406,7 +406,7 @@ const CreateEventSidebar = ({
             </div>
 
             {/* Location */}
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Location
               </label>
@@ -420,7 +420,7 @@ const CreateEventSidebar = ({
             </div>
 
             {/* Notes */}
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Notes
               </label>
@@ -434,7 +434,7 @@ const CreateEventSidebar = ({
             </div>
 
             {/* Color Selection */}
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Color
               </label>

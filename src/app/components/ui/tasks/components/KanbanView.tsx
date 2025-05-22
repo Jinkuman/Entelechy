@@ -1,0 +1,113 @@
+// src/components/KanbanView.tsx
+import { motion, AnimatePresence } from "framer-motion";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { taskSchema } from "@/app/schemas/taskSchema";
+import {
+  getImportanceColor,
+  formatImportanceDisplay,
+} from "../utils/taskUtils";
+import type { z } from "zod";
+
+type Task = z.infer<typeof taskSchema>;
+
+interface KanbanViewProps {
+  tasksByStatus: Record<string, Task[]>;
+  handleDragEnd: (result: any) => void;
+}
+
+const KanbanView = ({ tasksByStatus, handleDragEnd }: KanbanViewProps) => {
+  // Function to format date display
+  const formatDate = (date: Date | null) => {
+    if (!date) return "No date";
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  return (
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <div className="flex gap-4 p-4">
+        {(["uncompleted", "in-progress", "completed"] as const).map(
+          (statusKey, idx) => (
+            <motion.div
+              key={statusKey}
+              className="flex-1"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 * idx }}
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-medium dark:text-white">
+                  {statusKey === "uncompleted"
+                    ? "Uncompleted"
+                    : statusKey === "in-progress"
+                    ? "In Progress"
+                    : "Completed"}
+                </h3>
+                <motion.span
+                  className="bg-gray-200 dark:bg-gray-700 rounded-full px-2 py-0.5 text-sm dark:text-gray-300"
+                  whileHover={{ scale: 1.1 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {tasksByStatus[statusKey].length}
+                </motion.span>
+              </div>
+              <Droppable droppableId={statusKey}>
+                {(provided) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className="bg-gray-50 dark:bg-gray-900/50 min-h-[24rem] rounded p-2"
+                  >
+                    <AnimatePresence>
+                      {tasksByStatus[statusKey].map((task, index) => (
+                        <Draggable
+                          key={task.id}
+                          draggableId={task.id}
+                          index={index}
+                        >
+                          {(provided) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              style={provided.draggableProps.style}
+                              className="bg-white dark:bg-gray-800 p-4 rounded mb-2 border dark:border-gray-700 hover:shadow-md transition-shadow duration-200"
+                            >
+                              <div className="flex justify-between items-start mb-2">
+                                <h4 className="font-medium dark:text-white">
+                                  {task.title}
+                                </h4>
+                              </div>
+                              <div className="flex justify-between items-center">
+                                <span
+                                  className={`text-xs px-2 py-1 rounded ${getImportanceColor(
+                                    task.importance
+                                  )}`}
+                                >
+                                  {formatImportanceDisplay(task.importance)}
+                                </span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {formatDate(task.dueDate)}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                    </AnimatePresence>
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </motion.div>
+          )
+        )}
+      </div>
+    </DragDropContext>
+  );
+};
+
+export default KanbanView;

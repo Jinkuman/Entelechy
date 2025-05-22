@@ -1,6 +1,7 @@
+// components/Sidebar.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   CalendarDays,
   CheckSquare,
@@ -10,12 +11,16 @@ import {
   ChevronRightCircle,
   Settings,
   Home,
-  Folder,
   FileText,
+  LogOut,
+  User,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   // Add other properties if needed
@@ -90,11 +95,76 @@ const NavItem = ({
 export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const router = useRouter();
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  // Initialize dark mode from localStorage or system preference
+  useEffect(() => {
+    // Check for stored preference first
+    const storedPreference = localStorage.getItem("darkMode");
+
+    if (storedPreference !== null) {
+      // Use stored preference if available
+      const isDarkMode = storedPreference === "true";
+      setDarkMode(isDarkMode);
+
+      if (isDarkMode) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    } else if (typeof window !== "undefined") {
+      // Fall back to system preference if no stored preference
+      const isDarkMode = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
+      setDarkMode(isDarkMode);
+
+      if (isDarkMode) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    }
+  }, []);
+
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+
+    if (newDarkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+
+    // Store preference in localStorage to persist across pages
+    localStorage.setItem("darkMode", newDarkMode.toString());
+  };
 
   const toggleSidebar = () => {
     setCollapsed(!collapsed);
   };
+
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        profileRef.current &&
+        !profileRef.current.contains(event.target as Node)
+      ) {
+        setProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Keyboard shortcut handler
   useEffect(() => {
@@ -122,6 +192,10 @@ export function Sidebar({ className }: SidebarProps) {
             e.preventDefault();
             router.push("/");
             break;
+          case "d": // Toggle dark mode
+            e.preventDefault();
+            toggleDarkMode();
+            break;
         }
       }
     };
@@ -133,7 +207,7 @@ export function Sidebar({ className }: SidebarProps) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [router, collapsed]); // Add collapsed to dependency array
+  }, [router, collapsed, darkMode]); // Add darkMode to dependency array
 
   return (
     <div
@@ -180,14 +254,6 @@ export function Sidebar({ className }: SidebarProps) {
             isActive={pathname.includes("/calendar")}
             isSidebarCollapsed={collapsed}
           />
-
-          <NavItem
-            href="/pages/settings"
-            icon={<Settings className="h-4 w-4" />}
-            label="Settings"
-            isActive={pathname.includes("/pages/settings")}
-            isSidebarCollapsed={collapsed}
-          />
         </div>
       </div>
 
@@ -199,6 +265,8 @@ export function Sidebar({ className }: SidebarProps) {
             <div className="grid grid-cols-2 gap-x-2 gap-y-1">
               <span>Ctrl+S</span>
               <span>Toggle Sidebar</span>
+              <span>Ctrl+D</span>
+              <span>Toggle Dark Mode</span>
               <span>Ctrl+T</span>
               <span>Tasks</span>
               <span>Ctrl+N</span>
@@ -212,21 +280,162 @@ export function Sidebar({ className }: SidebarProps) {
         </div>
       )}
 
-      {/* User profile at bottom */}
-      <div className="mt-auto p-4 border-t border-zinc-200 dark:border-zinc-800">
-        <div className="flex items-center gap-2 text-sm">
+      {/* User profile at bottom with side-expanding dropdown */}
+      <div
+        className="mt-auto border-t border-zinc-200 dark:border-zinc-800 relative"
+        ref={profileRef}
+      >
+        <button
+          onClick={() => setProfileOpen(!profileOpen)}
+          className="w-full p-4 flex items-center gap-2 text-sm hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+        >
           <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex-shrink-0 flex items-center justify-center text-white font-medium">
             {!collapsed && "ME"}
           </div>
           {!collapsed && (
-            <div className="overflow-hidden">
-              <div className="font-medium truncate">My Workspace</div>
-              <div className="text-xs text-zinc-500 truncate">
+            <div className="overflow-hidden flex-1 text-left">
+              <div className="font-medium truncate dark:text-white">
+                My Workspace
+              </div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
                 user@example.com
               </div>
             </div>
           )}
-        </div>
+          {!collapsed && (
+            <ChevronDown
+              className="h-4 w-4 text-zinc-500 transition-transform duration-200"
+              style={{
+                transform: profileOpen ? "rotate(180deg)" : "rotate(0)",
+              }}
+            />
+          )}
+        </button>
+
+        {/* Side-expanding Profile Dropdown with Roll-out Animation */}
+        <AnimatePresence>
+          {profileOpen && (
+            <motion.div
+              initial={{
+                opacity: 0,
+                width: 0,
+                x: collapsed ? -200 : 0,
+              }}
+              animate={{
+                opacity: 1,
+                width: 240,
+                x: 0,
+              }}
+              exit={{
+                opacity: 0,
+                width: 0,
+                x: collapsed ? -200 : 0,
+              }}
+              transition={{
+                duration: 0.4,
+                ease: [0.4, 0.0, 0.2, 1], // Custom easing for smooth roll-out
+                opacity: { duration: 0.2 },
+                width: { duration: 0.4 },
+                x: { duration: 0.4 },
+              }}
+              className={cn(
+                "absolute bottom-0 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-r-lg shadow-xl overflow-hidden z-50",
+                collapsed ? "left-full" : "left-full"
+              )}
+              style={{
+                height: "fit-content",
+              }}
+            >
+              <div className="py-2 min-w-60">
+                {/* Menu Items with Staggered Animation */}
+                <div className="py-1">
+                  <motion.button
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3, duration: 0.3 }}
+                    className="w-full px-4 py-3 text-sm text-left flex items-center gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors group"
+                  >
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <User className="h-4 w-4 text-zinc-500 group-hover:text-zinc-700 dark:group-hover:text-zinc-300" />
+                    </motion.div>
+                    <span className="dark:text-white">Profile Settings</span>
+                  </motion.button>
+
+                  {/* Dark Mode Toggle with Enhanced Animation */}
+                  <motion.button
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4, duration: 0.3 }}
+                    onClick={toggleDarkMode}
+                    className="w-full px-4 py-3 text-sm text-left flex items-center gap-3 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors group"
+                  >
+                    <motion.div
+                      animate={{
+                        rotate: darkMode ? 360 : 0,
+                        scale: darkMode ? 1.1 : 1,
+                      }}
+                      whileHover={{ scale: 1.2 }}
+                      transition={{
+                        rotate: { duration: 0.6 },
+                        scale: { duration: 0.2 },
+                      }}
+                      className="relative h-4 w-4 flex items-center justify-center"
+                    >
+                      <AnimatePresence mode="wait">
+                        {darkMode ? (
+                          <motion.div
+                            key="sun"
+                            initial={{ opacity: 0, rotate: -90 }}
+                            animate={{ opacity: 1, rotate: 0 }}
+                            exit={{ opacity: 0, rotate: 90 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <Sun className="h-4 w-4 text-yellow-500" />
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="moon"
+                            initial={{ opacity: 0, rotate: -90 }}
+                            animate={{ opacity: 1, rotate: 0 }}
+                            exit={{ opacity: 0, rotate: 90 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <Moon className="h-4 w-4 text-indigo-500" />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                    <span className="dark:text-white">
+                      {darkMode
+                        ? "Switch to Light Mode"
+                        : "Switch to Dark Mode"}
+                    </span>
+                  </motion.button>
+
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5, duration: 0.3 }}
+                    className="border-t border-zinc-200 dark:border-zinc-800 mt-1 pt-1"
+                  >
+                    <button className="w-full px-4 py-3 text-sm text-left flex items-center gap-3 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-600 dark:text-red-400 group">
+                      <motion.div
+                        whileHover={{ scale: 1.1, x: 2 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <LogOut className="h-4 w-4" />
+                      </motion.div>
+                      <span>Sign Out</span>
+                    </button>
+                  </motion.div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Collapse/Expand toggle button */}
