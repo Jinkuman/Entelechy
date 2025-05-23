@@ -306,7 +306,7 @@ export function Sidebar({ className }: SidebarProps) {
             <ChevronDown
               className="h-4 w-4 text-zinc-500 transition-transform duration-200"
               style={{
-                transform: profileOpen ? "rotate(180deg)" : "rotate(0)",
+                transform: profileOpen ? "rotate(270deg)" : "rotate(90deg)",
               }}
             />
           )}
