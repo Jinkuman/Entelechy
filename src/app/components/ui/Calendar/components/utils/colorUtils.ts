@@ -71,6 +71,18 @@ export const getEventColorClasses = (color: string) => {
         text: "text-red-800 dark:text-red-200",
         dot: "bg-red-500",
       };
+    case "pink":
+      return {
+        bg: "bg-pink-100 dark:bg-pink-900/50",
+        text: "text-pink-800 dark:text-pink-200",
+        dot: "bg-pink-500",
+      };
+    case "orange":
+      return {
+        bg: "bg-orange-100 dark:bg-orange-900/50",
+        text: "text-orange-800 dark:text-orange-200",
+        dot: "bg-orange-500",
+      };
     case "yellow":
       return {
         bg: "bg-yellow-100 dark:bg-yellow-900/50",

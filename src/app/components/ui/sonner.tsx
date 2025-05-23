@@ -4,7 +4,7 @@
 import { useTheme } from "next-themes";
 import { Toaster as Sonner, toast, ToasterProps } from "sonner";
 import { Check, X, Trash2, AlertCircle } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 // Define types for the custom toast component
 interface CustomToastProps {
@@ -24,17 +24,34 @@ export function CustomToast({
   type = "success",
 }: CustomToastProps) {
   const [timeLeft, setTimeLeft] = useState(100);
+  const [hovered, setHovered] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Timer logic with pause on hover
   useEffect(() => {
-    const interval = setInterval(() => {
+    if (hovered) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      return;
+    }
+
+    intervalRef.current = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 0) return 0;
         return prev - 100 / (duration / 100);
       });
     }, 100);
 
-    return () => clearInterval(interval);
-  }, [duration]);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [hovered, duration]);
+
+  // Auto-dismiss when timeLeft reaches 0
+  useEffect(() => {
+    if (timeLeft <= 0) {
+      onDismiss();
+    }
+  }, [timeLeft, onDismiss]);
 
   // Define icon and colors based on toast type
   const getToastStyles = () => {
@@ -75,7 +92,11 @@ export function CustomToast({
   const { icon, bgColor, timerColor } = getToastStyles();
 
   return (
-    <div className="group relative overflow-hidden rounded-lg border border-border bg-background p-4 shadow-lg">
+    <div
+      className="group relative overflow-hidden rounded-lg border border-border bg-background p-4 shadow-lg"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
       {/* Timer bar */}
       <div
         className={`absolute top-0 left-0 h-1 ${timerColor} transition-all duration-100 ease-linear`}

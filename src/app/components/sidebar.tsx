@@ -232,6 +232,14 @@ export function Sidebar({ className }: SidebarProps) {
           />
 
           <NavItem
+            href="/pages/calendar"
+            icon={<CalendarDays className="h-4 w-4" />}
+            label="Calendar"
+            isActive={pathname.includes("/calendar")}
+            isSidebarCollapsed={collapsed}
+          />
+
+          <NavItem
             href="/pages/tasks"
             icon={<CheckSquare className="h-4 w-4" />}
             label="Tasks"
@@ -244,14 +252,6 @@ export function Sidebar({ className }: SidebarProps) {
             icon={<FileText className="h-4 w-4" />}
             label="Notes"
             isActive={pathname.includes("/notes")}
-            isSidebarCollapsed={collapsed}
-          />
-
-          <NavItem
-            href="/pages/calendar"
-            icon={<CalendarDays className="h-4 w-4" />}
-            label="Calendar"
-            isActive={pathname.includes("/calendar")}
             isSidebarCollapsed={collapsed}
           />
         </div>
