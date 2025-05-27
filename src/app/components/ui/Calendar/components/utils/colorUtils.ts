@@ -95,6 +95,12 @@ export const getEventColorClasses = (color: string) => {
         text: "text-purple-800 dark:text-purple-200",
         dot: "bg-purple-500",
       };
+    case "indigo":
+      return {
+        bg: "bg-indigo-100 dark:bg-indigo-900/50",
+        text: "text-indigo-800 dark:text-indigo-200",
+        dot: "bg-indigo-500",
+      };
     default:
       return {
         bg: "bg-gray-100 dark:bg-gray-700",

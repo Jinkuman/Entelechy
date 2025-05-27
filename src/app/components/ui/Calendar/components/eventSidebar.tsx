@@ -532,7 +532,7 @@ const EventSidebar = ({
           <div className="mt-6 flex justify-between">
             <motion.button
               onClick={() => setEditedEvent(null)}
-              className="px-4 py-2 border dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="px-4 py-2 bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-200 rounded-md hover:bg-red-200 dark:hover:bg-red-800"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
@@ -540,7 +540,7 @@ const EventSidebar = ({
             </motion.button>
             <motion.button
               onClick={handleSave}
-              className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-md hover:bg-blue-700 dark:hover:bg-blue-800"
+              className="px-4 py-2 bg-green-600 dark:bg-green-700 text-white rounded-md hover:bg-green-700 dark:hover:bg-green-800"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >

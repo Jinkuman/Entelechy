@@ -7,7 +7,7 @@ import { Check, X, Trash2, AlertCircle } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
 // Define types for the custom toast component
-interface CustomToastProps {
+interface CalendarToastProps {
   title?: string;
   description?: string;
   onDismiss: () => void;
@@ -16,13 +16,13 @@ interface CustomToastProps {
 }
 
 // Custom toast component with checkmark, dismiss button, and timer
-export function CustomToast({
+export function CalendarToast({
   title,
   description,
   onDismiss,
   duration = 3500,
   type = "success",
-}: CustomToastProps) {
+}: CalendarToastProps) {
   const [timeLeft, setTimeLeft] = useState(100);
   const [hovered, setHovered] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -168,7 +168,7 @@ export { Toaster };
 // Enhanced toast functions with proper types
 export function showSuccessToast(title: string, description?: string) {
   return toast.custom((id) => (
-    <CustomToast
+    <CalendarToast
       title={title}
       description={description}
       onDismiss={() => toast.dismiss(id)}
@@ -180,7 +180,7 @@ export function showSuccessToast(title: string, description?: string) {
 
 export function showErrorToast(title: string, description?: string) {
   return toast.custom((id) => (
-    <CustomToast
+    <CalendarToast
       title={title}
       description={description}
       onDismiss={() => toast.dismiss(id)}
@@ -192,7 +192,7 @@ export function showErrorToast(title: string, description?: string) {
 
 export function showDeleteToast(title: string, description?: string) {
   return toast.custom((id) => (
-    <CustomToast
+    <CalendarToast
       title={title}
       description={description}
       onDismiss={() => toast.dismiss(id)}
@@ -204,7 +204,7 @@ export function showDeleteToast(title: string, description?: string) {
 
 export function showInfoToast(title: string, description?: string) {
   return toast.custom((id) => (
-    <CustomToast
+    <CalendarToast
       title={title}
       description={description}
       onDismiss={() => toast.dismiss(id)}
