@@ -1,4 +1,4 @@
-// calendar/Calendar.tsx
+// calendar/calendar.tsx
 "use client";
 
 import { useState, useEffect } from "react";
