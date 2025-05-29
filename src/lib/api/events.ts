@@ -1,3 +1,4 @@
+// utils/events.ts
 import supabase from "@/lib/supabaseClient";
 import { Event, eventSchema } from "@/app/schemas/eventSchema";
 
@@ -42,8 +43,8 @@ export async function fetchUserEvents(userId: string): Promise<Event[]> {
           startTime: new Date(event.start_time),
           endTime: new Date(event.end_time),
           allDay: Boolean(event.all_day),
-          location: event.location,
-          notes: event.notes,
+          location: event.location || null,
+          notes: event.notes || null,
           color: event.color || "blue",
           created_at: new Date(event.created_at),
           updated_at: new Date(event.updated_at),
@@ -58,7 +59,6 @@ export async function fetchUserEvents(userId: string): Promise<Event[]> {
           error: parseError,
           eventData: event,
         });
-        // Continue processing other events instead of crashing
         continue;
       }
     }
@@ -77,5 +77,16 @@ export function getUpcomingEvents(
   events: Event[],
   currentDate: Date = new Date()
 ): Event[] {
-  return events.filter((event) => event.startTime > currentDate).slice(0, 4);
+  // Get start of today to include events happening today
+  const startOfToday = new Date(currentDate);
+  startOfToday.setHours(0, 0, 0, 0);
+
+  return events
+    .filter((event) => {
+      // Include events that start today or later
+      const eventDate = new Date(event.startTime);
+      eventDate.setHours(0, 0, 0, 0);
+      return eventDate >= startOfToday;
+    })
+    .slice(0, 4);
 }

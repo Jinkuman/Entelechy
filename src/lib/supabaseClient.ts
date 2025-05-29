@@ -1,3 +1,4 @@
+// lib/supabaseClient.ts
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -15,6 +16,20 @@ export async function getCurrentUserId(): Promise<string | null> {
     return null;
   }
   return session?.user.id ?? null;
+}
+
+export async function getCurrentUser() {
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error) {
+    console.error("Error fetching user:", error);
+    return null;
+  }
+
+  return user;
 }
 
 export default supabase;

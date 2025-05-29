@@ -2,6 +2,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useUser } from "../hooks/useUser";
+import supabase from "@/lib/supabaseClient";
 import {
   CalendarDays,
   CheckSquare,
@@ -99,6 +101,9 @@ export function Sidebar({ className }: SidebarProps) {
   const [profileOpen, setProfileOpen] = useState(false);
   const router = useRouter();
   const profileRef = useRef<HTMLDivElement>(null);
+  const { user, loading, error } = useUser();
+  const displayName = user?.user_metadata?.full_name || user?.email || "User";
+  const email = user?.email || "user@example.com";
 
   // Initialize dark mode from localStorage or system preference
   useEffect(() => {
@@ -129,6 +134,19 @@ export function Sidebar({ className }: SidebarProps) {
       }
     }
   }, []);
+
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Error signing out:", error.message);
+      } else {
+        router.push("/auth/sign-in");
+      }
+    } catch (error) {
+      console.error("Unexpected error during sign out:", error);
+    }
+  };
 
   // Toggle dark mode
   const toggleDarkMode = () => {
@@ -295,10 +313,10 @@ export function Sidebar({ className }: SidebarProps) {
           {!collapsed && (
             <div className="overflow-hidden flex-1 text-left">
               <div className="font-medium truncate dark:text-white">
-                My Workspace
+                {loading ? "Loading..." : displayName}
               </div>
               <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
-                user@example.com
+                {loading ? "..." : email}
               </div>
             </div>
           )}
@@ -421,7 +439,10 @@ export function Sidebar({ className }: SidebarProps) {
                     transition={{ delay: 0.5, duration: 0.3 }}
                     className="border-t border-zinc-200 dark:border-zinc-800 mt-1 pt-1"
                   >
-                    <button className="w-full px-4 py-3 text-sm text-left flex items-center gap-3 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-600 dark:text-red-400 group">
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full px-4 py-3 text-sm text-left flex items-center gap-3 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-red-600 dark:text-red-400 group"
+                    >
                       <motion.div
                         whileHover={{ scale: 1.1, x: 2 }}
                         transition={{ duration: 0.2 }}

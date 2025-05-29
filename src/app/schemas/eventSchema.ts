@@ -10,7 +10,7 @@ export const eventSchema = z.object({
   endTime: z.date(),
   allDay: z.boolean().default(false),
   location: z.string().nullable().default(null),
-  notes: z.string().uuid().nullable().default(null),
+  notes: z.string().nullable().default(null), // Fixed: removed .uuid()
   color: z.string().default("blue"),
   created_at: z.date(),
   updated_at: z.date(),

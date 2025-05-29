@@ -7,6 +7,7 @@ import { Event } from "@/app/schemas/eventSchema";
 import supabase from "@/lib/supabaseClient";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
+import { AuthGuard } from "@/app/components/authGuard";
 
 const CalendarPage = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -216,29 +217,31 @@ const CalendarPage = () => {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Calendar</h1>
+    <AuthGuard>
+      <div className="p-6 max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Calendar</h1>
 
-        <motion.button
-          className="cursor-pointer rounded-full p-3 bg-blue-600 text-white shadow-lg"
-          onClick={openCreateEventSidebar}
-          whileHover={{ scale: 1.1, rotate: 90 }}
-          whileTap={{ scale: 0.95 }}
-          transition={{ duration: 0.3 }}
-        >
-          <Plus size={24} />
-        </motion.button>
+          <motion.button
+            className="cursor-pointer rounded-full p-3 bg-blue-600 text-white shadow-lg"
+            onClick={openCreateEventSidebar}
+            whileHover={{ scale: 1.1, rotate: 90 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Plus size={24} />
+          </motion.button>
+        </div>
+
+        <Calendar
+          events={events}
+          onAddEvent={handleAddEvent}
+          onUpdateEvent={handleUpdateEvent}
+          onDeleteEvent={handleDeleteEvent}
+          openCreateSidebarRef={openCreateSidebarRef}
+        />
       </div>
-
-      <Calendar
-        events={events}
-        onAddEvent={handleAddEvent}
-        onUpdateEvent={handleUpdateEvent}
-        onDeleteEvent={handleDeleteEvent}
-        openCreateSidebarRef={openCreateSidebarRef}
-      />
-    </div>
+    </AuthGuard>
   );
 };
 
