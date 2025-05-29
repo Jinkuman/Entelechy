@@ -2,12 +2,14 @@ import { z } from "zod";
 
 export const CreateNoteSchema = z.object({
   content: z.string().min(1, "Content is required"),
+  tags: z.array(z.string()).default([]),
   related_type: z.string().optional(),
   related_id: z.string().uuid().optional(),
 });
 
 export const UpdateNoteSchema = z.object({
   content: z.string().min(1, "Content is required"),
+  tags: z.array(z.string()).default([]),
   related_type: z.string().optional(),
   related_id: z.string().uuid().optional(),
 });
@@ -19,6 +21,7 @@ export interface NotesStats {
   total: number;
   updatedRecently: number;
   newThisWeek: number;
+  totalTags: number;
 }
 
 // Raw database type
@@ -26,8 +29,14 @@ export interface DatabaseNote {
   id: string;
   user_id: string;
   content: string;
+  tags: string[];
   related_type: string | null;
   related_id: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface TagFilter {
+  selectedTags: string[];
+  availableTags: string[];
 }

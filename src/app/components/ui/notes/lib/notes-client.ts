@@ -25,6 +25,7 @@ export async function fetchUserNotes(userId: string): Promise<Note[]> {
     id: note.id,
     user_id: note.user_id,
     content: note.content,
+    tags: Array.isArray(note.tags) ? note.tags : [], // Ensure tags is always an array
     related_type: note.related_type,
     related_id: note.related_id,
     created_at: note.created_at,
@@ -42,6 +43,7 @@ export async function createNote(
       {
         user_id: userId,
         content: noteData.content,
+        tags: noteData.tags || [],
         related_type: noteData.related_type || null,
         related_id: noteData.related_id || null,
       },
@@ -53,7 +55,13 @@ export async function createNote(
     throw new Error(`Failed to create note: ${error.message}`);
   }
 
-  return data as Note;
+  // Transform the returned data
+  const transformedNote = {
+    ...data,
+    tags: Array.isArray(data.tags) ? data.tags : [],
+  };
+
+  return transformedNote as Note;
 }
 
 export async function updateNote(
@@ -64,6 +72,7 @@ export async function updateNote(
     .from("notes")
     .update({
       content: noteData.content,
+      tags: noteData.tags || [],
       related_type: noteData.related_type || null,
       related_id: noteData.related_id || null,
       updated_at: new Date().toISOString(),
@@ -76,7 +85,13 @@ export async function updateNote(
     throw new Error(`Failed to update note: ${error.message}`);
   }
 
-  return data as Note;
+  // Transform the returned data
+  const transformedNote = {
+    ...data,
+    tags: Array.isArray(data.tags) ? data.tags : [],
+  };
+
+  return transformedNote as Note;
 }
 
 export async function deleteNote(noteId: string): Promise<void> {
@@ -100,5 +115,42 @@ export function calculateNotesStats(notes: Note[]): NotesStats {
     (note) => new Date(note.updated_at) >= oneDayAgo
   ).length;
 
-  return { total, updatedRecently, newThisWeek };
+  // Get all unique tags - with safety check
+  const allTags = new Set<string>();
+  notes.forEach((note) => {
+    const tags = Array.isArray(note.tags) ? note.tags : [];
+    tags.forEach((tag) => {
+      if (typeof tag === "string") {
+        allTags.add(tag);
+      }
+    });
+  });
+  const totalTags = allTags.size;
+
+  return { total, updatedRecently, newThisWeek, totalTags };
+}
+
+export function getAllTags(notes: Note[]): string[] {
+  const tagSet = new Set<string>();
+  notes.forEach((note) => {
+    const tags = Array.isArray(note.tags) ? note.tags : [];
+    tags.forEach((tag) => {
+      if (typeof tag === "string") {
+        tagSet.add(tag);
+      }
+    });
+  });
+  return Array.from(tagSet).sort();
+}
+
+export function filterNotesByTags(
+  notes: Note[],
+  selectedTags: string[]
+): Note[] {
+  if (selectedTags.length === 0) return notes;
+
+  return notes.filter((note) => {
+    const noteTags = Array.isArray(note.tags) ? note.tags : [];
+    return selectedTags.every((tag) => noteTags.includes(tag));
+  });
 }
