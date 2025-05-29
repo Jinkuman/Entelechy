@@ -1,16 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import supabase from "@/lib/supabaseClient";
 import { type NotesStats } from "@/app/components/ui/notes/lib/types";
 import { type Note } from "@/app/schemas/notesSchema";
 import {
   fetchUserNotes,
   calculateNotesStats,
+  getAllTags,
+  filterNotesByTags,
 } from "../../components/ui/notes/lib/notes-client";
 import { NotesHeader } from "@/app/components/ui/notes/components/notes-header";
 import { NotesGrid } from "@/app/components/ui/notes/components/notes-grid";
 import { SearchBar } from "@/app/components/ui/notes/components/search-bar";
+import { TagFilter } from "@/app/components/ui/notes/components/tag-filter";
 import { LoadingSpinner } from "@/app/components/ui/notes/components/loading-spinner";
 
 export default function NotesPage() {
@@ -19,17 +22,18 @@ export default function NotesPage() {
     total: 0,
     updatedRecently: 0,
     newThisWeek: 0,
+    totalTags: 0,
   });
   const [userId, setUserId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   // Fetch user and their notes
   useEffect(() => {
     const fetchUserAndNotes = async () => {
       try {
-        // Get the current user
         const {
           data: { user },
         } = await supabase.auth.getUser();
@@ -42,7 +46,6 @@ export default function NotesPage() {
 
         setUserId(user.id);
 
-        // Fetch notes for this user
         const notesData = await fetchUserNotes(user.id);
         setNotes(notesData);
         setStats(calculateNotesStats(notesData));
@@ -57,10 +60,37 @@ export default function NotesPage() {
     fetchUserAndNotes();
   }, []);
 
-  // Filter notes based on search query
-  const filteredNotes = notes.filter((note) =>
-    note.content.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Get available tags
+  const availableTags = useMemo(() => getAllTags(notes), [notes]);
+
+  // Filter notes based on search query and selected tags
+  const filteredNotes = useMemo(() => {
+    let filtered = notes;
+
+    // Apply tag filter first
+    if (selectedTags.length > 0) {
+      filtered = filterNotesByTags(filtered, selectedTags);
+    }
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      if (searchQuery.startsWith("#")) {
+        // Tag search
+        const tagQuery = searchQuery.slice(1).toLowerCase();
+        filtered = filtered.filter((note) => {
+          const noteTags = Array.isArray(note.tags) ? note.tags : [];
+          return noteTags.some((tag) => tag.toLowerCase().includes(tagQuery));
+        });
+      } else {
+        // Content search
+        filtered = filtered.filter((note) =>
+          note.content.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      }
+    }
+
+    return filtered;
+  }, [notes, searchQuery, selectedTags]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -97,10 +127,17 @@ export default function NotesPage() {
         />
 
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <SearchBar
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-          />
+          <div className="flex gap-4 flex-1">
+            <SearchBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+            />
+            <TagFilter
+              availableTags={availableTags}
+              selectedTags={selectedTags}
+              onTagsChange={setSelectedTags}
+            />
+          </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500 dark:text-gray-400">
               {filteredNotes.length} of {notes.length} notes

@@ -3,6 +3,7 @@ import { z } from "zod";
 export const NoteSchema = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid(),
+  title: z.string().min(1, "Title is required"),
   content: z.string().min(1, "Content is required"),
   tags: z.array(z.string()).default([]),
   related_type: z.string().nullable(),

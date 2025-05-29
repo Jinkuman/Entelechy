@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const CreateNoteSchema = z.object({
   content: z.string().min(1, "Content is required"),
+  title: z.string(),
   tags: z.array(z.string()).default([]),
   related_type: z.string().optional(),
   related_id: z.string().uuid().optional(),
@@ -9,6 +10,7 @@ export const CreateNoteSchema = z.object({
 
 export const UpdateNoteSchema = z.object({
   content: z.string().min(1, "Content is required"),
+  title: z.string(),
   tags: z.array(z.string()).default([]),
   related_type: z.string().optional(),
   related_id: z.string().uuid().optional(),
@@ -28,6 +30,7 @@ export interface NotesStats {
 export interface DatabaseNote {
   id: string;
   user_id: string;
+  title: string;
   content: string;
   tags: string[];
   related_type: string | null;

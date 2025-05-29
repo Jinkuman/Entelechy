@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { type Note } from "@/app/schemas/notesSchema";
 import { updateNote, fetchUserNotes } from "../lib/notes-client";
+import { TagInput } from "./tag-input";
 import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
 
 interface NoteEditorProps {
@@ -21,7 +22,12 @@ export function NoteEditor({
   index,
 }: NoteEditorProps) {
   const [content, setContent] = useState(note?.content || "");
+  const [title, setTitle] = useState(note?.title || "");
+  const [tags, setTags] = useState<string[]>(
+    Array.isArray(note?.tags) ? note.tags : []
+  );
   const [isSaving, setIsSaving] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -39,11 +45,10 @@ export function NoteEditor({
 
     setIsSaving(true);
     try {
-      await updateNote(note.id, { content });
-      // Refresh notes after update
+      await updateNote(note.id, { content, tags, title });
       const updatedNotes = await fetchUserNotes(userId);
       onNotesChange(updatedNotes);
-      onClose();
+      handleClose();
     } catch (error) {
       console.error("Failed to save note:", error);
     } finally {
@@ -51,9 +56,16 @@ export function NoteEditor({
     }
   };
 
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+    }, 200);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
-      onClose();
+      handleClose();
     } else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
       handleSave();
     }
@@ -61,7 +73,9 @@ export function NoteEditor({
 
   return (
     <div
-      className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-lg animate-scale-in"
+      className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-lg transition-all duration-200 ${
+        isClosing ? "animate-scale-out" : "animate-scale-in"
+      }`}
       style={{
         animationDelay: `${index * 50}ms`,
         animationFillMode: "both",
@@ -80,12 +94,34 @@ export function NoteEditor({
             <CheckIcon className="h-4 w-4" />
           </button>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200"
           >
             <XMarkIcon className="h-4 w-4" />
           </button>
         </div>
+      </div>
+
+      {/* Title Section */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Title
+        </label>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Enter note title..."
+          className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all duration-200"
+        />
+      </div>
+
+      {/* Tags Section */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Tags
+        </label>
+        <TagInput tags={tags} onChange={setTags} placeholder="Add tags..." />
       </div>
 
       <textarea

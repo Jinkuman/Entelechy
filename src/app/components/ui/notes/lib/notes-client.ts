@@ -8,6 +8,7 @@ import {
   type NotesStats,
 } from "./types";
 import { type Note } from "@/app/schemas/notesSchema";
+import { title } from "process";
 
 export async function fetchUserNotes(userId: string): Promise<Note[]> {
   const { data, error } = await supabase
@@ -24,6 +25,7 @@ export async function fetchUserNotes(userId: string): Promise<Note[]> {
   return (data as DatabaseNote[]).map((note) => ({
     id: note.id,
     user_id: note.user_id,
+    title: note.title,
     content: note.content,
     tags: Array.isArray(note.tags) ? note.tags : [], // Ensure tags is always an array
     related_type: note.related_type,
@@ -42,6 +44,7 @@ export async function createNote(
     .insert([
       {
         user_id: userId,
+        title: noteData.title,
         content: noteData.content,
         tags: noteData.tags || [],
         related_type: noteData.related_type || null,
@@ -72,6 +75,7 @@ export async function updateNote(
     .from("notes")
     .update({
       content: noteData.content,
+      title: noteData.title,
       tags: noteData.tags || [],
       related_type: noteData.related_type || null,
       related_id: noteData.related_id || null,

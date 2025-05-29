@@ -10,7 +10,6 @@ import {
   XMarkIcon,
   PencilIcon,
   CheckIcon,
-  EyeIcon,
   DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 
@@ -28,14 +27,15 @@ export function NoteViewer({
   onNotesChange,
 }: NoteViewerProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const [content, setContent] = useState(note.content);
+  const [title, setTitle] = useState(note.title || ""); // Fixed typo and added fallback
   const [tags, setTags] = useState<string[]>(
     Array.isArray(note.tags) ? note.tags : []
   );
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    // Prevent body scroll when viewer is open
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "unset";
@@ -45,7 +45,7 @@ export function NoteViewer({
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await updateNote(note.id, { content, tags });
+      await updateNote(note.id, { content, tags, title });
       const updatedNotes = await fetchUserNotes(userId);
       onNotesChange(updatedNotes);
       setIsEditing(false);
@@ -56,14 +56,22 @@ export function NoteViewer({
     }
   };
 
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      onClose();
+    }, 300);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
       if (isEditing) {
         setIsEditing(false);
         setContent(note.content);
+        setTitle(note.title || "");
         setTags(Array.isArray(note.tags) ? note.tags : []);
       } else {
-        onClose();
+        handleClose();
       }
     } else if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && isEditing) {
       handleSave();
@@ -72,11 +80,15 @@ export function NoteViewer({
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in"
-      onClick={onClose}
+      className={`fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all duration-300 ${
+        isClosing ? "animate-fade-out" : "animate-fade-in"
+      }`}
+      onClick={handleClose}
     >
       <div
-        className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col animate-scale-in-large"
+        className={`bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transition-all duration-300 ${
+          isClosing ? "animate-scale-out-large" : "animate-scale-in-large"
+        }`}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
         tabIndex={-1}
@@ -89,7 +101,7 @@ export function NoteViewer({
             </div>
             <div>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                {isEditing ? "Edit Note" : "Note Details"}
+                {isEditing ? "Edit Note" : note.title || "Untitled Note"}
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {isEditing
@@ -114,6 +126,7 @@ export function NoteViewer({
                   onClick={() => {
                     setIsEditing(false);
                     setContent(note.content);
+                    setTitle(note.title || "");
                     setTags(Array.isArray(note.tags) ? note.tags : []);
                   }}
                   className="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200"
@@ -132,7 +145,7 @@ export function NoteViewer({
             )}
 
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="p-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200"
             >
               <XMarkIcon className="h-5 w-5" />
@@ -142,6 +155,22 @@ export function NoteViewer({
 
         {/* Content */}
         <div className="flex-1 overflow-hidden flex flex-col">
+          {/* Title Section - Only show in edit mode */}
+          {isEditing && (
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Title
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter note title..."
+                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all duration-200"
+              />
+            </div>
+          )}
+
           {/* Tags Section */}
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3 mb-3">
