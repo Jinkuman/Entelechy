@@ -13,9 +13,11 @@ import {
   PenLine,
   Plus,
   Star,
-  ChevronRight,
   CheckSquare,
-  Folder,
+  Loader2,
+  Coffee,
+  Sparkles,
+  BookOpen,
 } from "lucide-react";
 import { ReactNode } from "react";
 import { Button } from "../../components/ui/button";
@@ -27,34 +29,99 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
-import PixelCard from "@/app/components/ui/pixelCard";
-import { Progress } from "../../components/ui/progress";
 import { cn } from "@/lib/utils";
 import supabase from "@/lib/supabaseClient";
 import { motion } from "framer-motion";
-import { any } from "zod";
+
+// Import your existing schemas
+import { Event } from "@/app/schemas/eventSchema";
+import { Note } from "@/app/schemas/notesSchema";
+import { taskSchema } from "@/app/schemas/taskSchema";
+import { z } from "zod";
+
+// Import API functions
+import { fetchUserEvents, getUpcomingEvents } from "@/lib/api/events";
+import {
+  fetchUserTasks,
+  updateTaskStatus,
+  cycleTaskStatus,
+} from "@/lib/api/tasks";
+import { fetchUserNotes, getRecentNotes } from "@/lib/api/notes";
+
+// Use your existing task type
+type Task = z.infer<typeof taskSchema>;
 
 export default function Dashboard() {
   const [userName, setUserName] = useState<string>("");
+  const [userId, setUserId] = useState<string>("");
+  const [events, setEvents] = useState<Event[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    async function loadUser() {
-      // Set loading to false immediately after fetching user data
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
-      if (error) {
-        console.error("Failed to fetch user:", error);
-      } else if (user) {
+    async function loadUserData() {
+      try {
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError) {
+          console.error("Failed to fetch user:", userError);
+          setError("Failed to load user data");
+          return;
+        }
+
+        if (!user) {
+          setError("Please log in to view your dashboard");
+          return;
+        }
+
         const name = (user.user_metadata as any)?.name ?? "";
         setUserName(name);
+        setUserId(user.id);
+
+        // Fetch all user data in parallel
+        const [eventsData, tasksData, notesData] = await Promise.all([
+          fetchUserEvents(user.id),
+          fetchUserTasks(user.id),
+          fetchUserNotes(user.id),
+        ]);
+
+        setEvents(eventsData);
+        setTasks(tasksData);
+        setNotes(notesData);
+      } catch (err) {
+        console.error("Error loading dashboard data:", err);
+        setError("Failed to load dashboard data");
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
-    loadUser();
+
+    loadUserData();
   }, []);
+
+  const handleTaskStatusChange = async (
+    taskId: string,
+    currentStatus: Task["status"]
+  ) => {
+    try {
+      const newStatus = cycleTaskStatus(currentStatus);
+      await updateTaskStatus(taskId, newStatus);
+
+      // Update local state
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === taskId ? { ...task, status: newStatus } : task
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update task status:", error);
+    }
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -80,24 +147,44 @@ export default function Dashboard() {
     },
   };
 
-  const buttonVariants = {
-    initial: { scale: 1 },
-    hover: { scale: 1.05, transition: { duration: 0.2 } },
-    tap: { scale: 0.95, transition: { duration: 0.1 } },
-  };
-
   if (isLoading) {
     return (
       <div className="h-full w-full flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1, rotate: [0, 360] }}
-          transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
-          className="w-16 h-16 border-4 border-t-blue-500 border-r-transparent border-b-blue-500 border-l-transparent rounded-full"
-        />
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-4"
+        >
+          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+          <p className="text-sm text-zinc-500">Loading your dashboard...</p>
+        </motion.div>
       </div>
     );
   }
+
+  if (error) {
+    return (
+      <div className="h-full w-full flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <p className="text-red-500 mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
+        </motion.div>
+      </div>
+    );
+  }
+
+  const upcomingEvents = getUpcomingEvents(events);
+  const recentNotes = getRecentNotes(notes);
+  const completedTasks = tasks.filter(
+    (task) => task.status === "completed"
+  ).length;
+  const inProgressTasks = tasks.filter(
+    (task) => task.status === "in_progress"
+  ).length;
 
   return (
     <motion.div
@@ -116,18 +203,6 @@ export default function Dashboard() {
             Welcome back! Here's an overview of your workspace.
           </p>
         </div>
-
-        <Link href="/settings/profile" className="no-underline">
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <PixelCard className="cursor-pointer border border-gray-200 hover:opacity-90 transition-opacity">
-              <div className="relative z-50 text-center">
-                <h1 className="text-2xl font-bold tracking-tight">
-                  {userName}
-                </h1>
-              </div>
-            </PixelCard>
-          </motion.div>
-        </Link>
       </motion.header>
 
       <motion.div
@@ -138,10 +213,12 @@ export default function Dashboard() {
         <motion.div variants={itemVariants}>
           <StatsCard
             title="Tasks"
-            value="12"
-            description="4 tasks due today"
-            trend="+2 from yesterday"
-            trendUp={true}
+            value={tasks.length}
+            description={`${completedTasks} completed, ${inProgressTasks} in progress`}
+            trend={`${
+              tasks.filter((t) => t.status === "uncompleted").length
+            } remaining`}
+            trendUp={completedTasks > inProgressTasks}
             icon={<CheckSquare className="h-5 w-5 text-blue-500" />}
             linkHref="/pages/tasks"
           />
@@ -149,22 +226,34 @@ export default function Dashboard() {
 
         <motion.div variants={itemVariants}>
           <StatsCard
-            title="Projects"
-            value="6"
-            description="2 active projects"
-            trend="1 completed this week"
-            trendUp={true}
-            icon={<Folder className="h-5 w-5 text-purple-500" />}
-            linkHref="/projects"
+            title="Events"
+            value={events.length}
+            description={`${upcomingEvents.length} upcoming events`}
+            trend={`${
+              events.filter(
+                (e) => e.startTime.toDateString() === new Date().toDateString()
+              ).length
+            } today`}
+            trendUp={upcomingEvents.length > 0}
+            icon={<Calendar className="h-5 w-5 text-purple-500" />}
+            linkHref="/pages/calendar"
           />
         </motion.div>
 
         <motion.div variants={itemVariants}>
           <StatsCard
             title="Notes"
-            value="23"
-            description="5 updated recently"
-            trend="+3 new this week"
+            value={notes.length}
+            description={`${
+              notes.filter((n) => n.tags && n.tags.includes("starred")).length
+            } starred notes`}
+            trend={`${
+              notes.filter((n) => {
+                const dayAgo = new Date();
+                dayAgo.setDate(dayAgo.getDate() - 1);
+                return new Date(n.updated_at) > dayAgo;
+              }).length
+            } updated recently`}
             trendUp={true}
             icon={<FileText className="h-5 w-5 text-green-500" />}
             linkHref="/pages/notes"
@@ -177,8 +266,10 @@ export default function Dashboard() {
         variants={itemVariants}
       >
         {/* Calendar Card */}
-        <motion.div variants={itemVariants}>
-          <Card className="overflow-hidden">
+        <motion.div variants={itemVariants} className="flex">
+          <Card className="overflow-hidden flex-1 flex flex-col">
+            {" "}
+            {/* Added flex classes */}
             <CardHeader className="flex flex-row items-center justify-between bg-zinc-50 dark:bg-zinc-900 border-b">
               <div className="flex items-center gap-2">
                 <motion.div
@@ -195,58 +286,83 @@ export default function Dashboard() {
                 <ArrowRight className="h-4 w-4" />
               </AnimatedButton>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="divide-y dark:divide-zinc-800">
-                {upcomingEvents.map((event, index) => (
-                  <motion.div
-                    key={index}
-                    className="flex items-center gap-4 p-4"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 + index * 0.1 }}
-                  >
+            <CardContent className="p-0 flex-1">
+              {upcomingEvents.length === 0 ? (
+                <motion.div
+                  className="flex flex-col items-center justify-center py-12 px-4 h-full"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <Coffee className="h-12 w-12 text-zinc-300 mb-4" />
+                  <h3 className="font-medium text-zinc-600 dark:text-zinc-400 mb-2">
+                    No upcoming events
+                  </h3>
+                  <p className="text-sm text-zinc-500 text-center">
+                    Looks like you have some free time! ☕
+                  </p>
+                </motion.div>
+              ) : (
+                <div className="divide-y dark:divide-zinc-800">
+                  {upcomingEvents.map((event, index) => (
                     <motion.div
-                      className={cn(
-                        "h-10 w-10 rounded-md flex items-center justify-center shrink-0",
-                        event.color
-                      )}
-                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      key={event.id}
+                      className="flex items-center gap-4 p-4"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2 + index * 0.1 }}
                     >
-                      <Calendar className="h-5 w-5 text-white" />
-                    </motion.div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium">{event.title}</h3>
-                      <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-                        <Clock className="h-3 w-3" />
-                        <span>{event.time}</span>
-                        <span className="text-xs">•</span>
-                        <span>{event.date}</span>
+                      <motion.div
+                        className={cn(
+                          "h-10 w-10 rounded-md flex items-center justify-center shrink-0",
+                          `bg-${event.color}-500`
+                        )}
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                      >
+                        <Calendar className="h-5 w-5 text-white" />
+                      </motion.div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium">{event.title}</h3>
+                        <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+                          <Clock className="h-3 w-3" />
+                          <span>
+                            {event.startTime.toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                          <span className="text-xs">•</span>
+                          <span>{event.startTime.toLocaleDateString()}</span>
+                        </div>
                       </div>
-                    </div>
-                    <motion.div
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                      <motion.div
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </motion.div>
                     </motion.div>
-                  </motion.div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
-            <CardFooter className="border-t bg-zinc-50 dark:bg-zinc-900 p-4">
-              <AnimatedButton variant="outline" className="w-full gap-1">
-                <Plus className="h-4 w-4" />
-                <span>Add New Event</span>
-              </AnimatedButton>
-            </CardFooter>
+            <Link href={"/pages/calendar"}>
+              <CardFooter className="border-t bg-zinc-50 dark:bg-zinc-900 p-4">
+                <AnimatedButton variant="outline" className="w-full gap-1">
+                  <Plus className="h-4 w-4" />
+                  <span>Add New Event</span>
+                </AnimatedButton>
+              </CardFooter>
+            </Link>
           </Card>
         </motion.div>
 
         {/* Tasks Card */}
-        <motion.div variants={itemVariants}>
-          <Card className="overflow-hidden">
+        <motion.div variants={itemVariants} className="flex">
+          <Card className="overflow-hidden flex-1 flex flex-col">
+            {" "}
+            {/* Added flex classes */}
             <CardHeader className="flex flex-row items-center justify-between bg-zinc-50 dark:bg-zinc-900 border-b">
               <div className="flex items-center gap-2">
                 <motion.div
@@ -263,66 +379,93 @@ export default function Dashboard() {
                 <ArrowRight className="h-4 w-4" />
               </AnimatedButton>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="divide-y dark:divide-zinc-800">
-                {tasks.map((task, index) => (
-                  <motion.div
-                    key={index}
-                    className="flex items-center gap-4 p-4"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 + index * 0.1 }}
-                  >
+            <CardContent className="p-0 flex-1">
+              {tasks.length === 0 ? (
+                <motion.div
+                  className="flex flex-col items-center justify-center py-12 px-4 h-full"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <Sparkles className="h-12 w-12 text-zinc-300 mb-4" />
+                  <h3 className="font-medium text-zinc-600 dark:text-zinc-400 mb-2">
+                    No tasks yet
+                  </h3>
+                  <p className="text-sm text-zinc-500 text-center">
+                    Time to get productive! ✨
+                  </p>
+                </motion.div>
+              ) : (
+                <div className="divide-y dark:divide-zinc-800">
+                  {tasks.slice(0, 5).map((task, index) => (
                     <motion.div
-                      className={cn(
-                        "h-6 w-6 rounded-full flex items-center justify-center border",
-                        task.completed
-                          ? "bg-green-100 border-green-500 dark:bg-green-900/30"
-                          : "border-zinc-300 dark:border-zinc-700"
-                      )}
-                      whileHover={{ scale: 1.2 }}
+                      key={task.id}
+                      className="flex items-center gap-4 p-4"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.3 + index * 0.1 }}
                     >
-                      {task.completed && (
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
-                      )}
-                    </motion.div>
-                    <div className="flex-1 min-w-0">
-                      <h3
+                      <motion.button
                         className={cn(
-                          "font-medium",
-                          task.completed &&
-                            "line-through text-zinc-500 dark:text-zinc-400"
+                          "h-6 w-6 rounded-full flex items-center justify-center border",
+                          task.status === "completed"
+                            ? "bg-green-100 border-green-500 dark:bg-green-900/30"
+                            : task.status === "in_progress"
+                            ? "bg-yellow-100 border-yellow-500 dark:bg-yellow-900/30"
+                            : "border-zinc-300 dark:border-zinc-700"
                         )}
+                        whileHover={{ scale: 1.2 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() =>
+                          handleTaskStatusChange(task.id, task.status)
+                        }
                       >
-                        {task.title}
-                      </h3>
-                      <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-                        <span>{task.project}</span>
-                        {task.priority && (
-                          <>
-                            <span className="text-xs">•</span>
-                            <span
-                              className={cn(
-                                "px-1.5 py-0.5 rounded-full text-xs",
-                                task.priority === "High"
-                                  ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                                  : task.priority === "Medium"
-                                  ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                                  : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                              )}
-                            >
-                              {task.priority}
-                            </span>
-                          </>
+                        {task.status === "completed" && (
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
                         )}
+                        {task.status === "in_progress" && (
+                          <div className="h-2 w-2 rounded-full bg-yellow-500" />
+                        )}
+                      </motion.button>
+                      <div className="flex-1 min-w-0">
+                        <h3
+                          className={cn(
+                            "font-medium",
+                            task.status === "completed" &&
+                              "line-through text-zinc-500 dark:text-zinc-400"
+                          )}
+                        >
+                          {task.title}
+                        </h3>
+                        <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+                          <span className="capitalize">
+                            {task.status.replace("_", " ")}
+                          </span>
+                          {task.importance && (
+                            <>
+                              <span className="text-xs">•</span>
+                              <span
+                                className={cn(
+                                  "px-1.5 py-0.5 rounded-full text-xs capitalize",
+                                  task.importance === "high"
+                                    ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                    : task.importance === "medium"
+                                    ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                                    : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                                )}
+                              >
+                                {task.importance}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                      {task.dueDate}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+                      <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                        {task.dueDate?.toLocaleDateString() || "No due date"}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </CardContent>
             <CardFooter className="border-t bg-zinc-50 dark:bg-zinc-900 p-4">
               <AnimatedButton variant="outline" className="w-full gap-1">
@@ -356,45 +499,63 @@ export default function Dashboard() {
               </AnimatedButton>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="divide-y dark:divide-zinc-800">
-                {notes.map((note, index) => (
-                  <motion.div
-                    key={index}
-                    className="flex items-center gap-3 p-4"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 + index * 0.1 }}
-                  >
+              {recentNotes.length === 0 ? (
+                <motion.div
+                  className="flex flex-col items-center justify-center py-12 px-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <BookOpen className="h-12 w-12 text-zinc-300 mb-4" />
+                  <h3 className="font-medium text-zinc-600 dark:text-zinc-400 mb-2">
+                    No notes yet
+                  </h3>
+                  <p className="text-sm text-zinc-500 text-center">
+                    Start capturing your thoughts! 📝
+                  </p>
+                </motion.div>
+              ) : (
+                <div className="divide-y dark:divide-zinc-800">
+                  {recentNotes.map((note, index) => (
                     <motion.div
-                      className="h-9 w-9 rounded bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0"
-                      whileHover={{ rotate: 10, scale: 1.1 }}
+                      key={note.id}
+                      className="flex items-center gap-3 p-4"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 + index * 0.1 }}
                     >
-                      <PenLine className="h-4 w-4 text-zinc-500" />
-                    </motion.div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium truncate">{note.title}</h3>
-                      <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-                        <span>Updated {note.updatedAt}</span>
-                        {note.starred && (
-                          <motion.div
-                            animate={{
-                              rotate: [0, 20, 0, -20, 0],
-                              scale: [1, 1.2, 1],
-                            }}
-                            transition={{
-                              duration: 1,
-                              delay: 2 + index * 0.2,
-                              repeat: 0,
-                            }}
-                          >
-                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                          </motion.div>
-                        )}
+                      <motion.div
+                        className="h-9 w-9 rounded bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0"
+                        whileHover={{ rotate: 10, scale: 1.1 }}
+                      >
+                        <PenLine className="h-4 w-4 text-zinc-500" />
+                      </motion.div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium truncate">{note.title}</h3>
+                        <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                          <span>
+                            Updated {getRelativeTime(new Date(note.updated_at))}
+                          </span>
+                          {note.tags && note.tags.includes("starred") && (
+                            <motion.div
+                              animate={{
+                                rotate: [0, 20, 0, -20, 0],
+                                scale: [1, 1.2, 1],
+                              }}
+                              transition={{
+                                duration: 1,
+                                delay: 2 + index * 0.2,
+                                repeat: 0,
+                              }}
+                            >
+                              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                            </motion.div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </CardContent>
             <CardFooter className="border-t bg-zinc-50 dark:bg-zinc-900 p-4">
               <AnimatedButton variant="outline" className="w-full gap-1">
@@ -407,6 +568,20 @@ export default function Dashboard() {
       </motion.div>
     </motion.div>
   );
+}
+
+// Helper function to get relative time
+function getRelativeTime(date: Date): string {
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) return "just now";
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+  if (diffInSeconds < 604800)
+    return `${Math.floor(diffInSeconds / 86400)}d ago`;
+
+  return date.toLocaleDateString();
 }
 
 // Define the props interface for the AnimatedButton component
@@ -539,96 +714,3 @@ function StatsCard({
     </Card>
   );
 }
-
-// Mock Data
-const upcomingEvents = [
-  {
-    title: "Team Weekly Sync",
-    time: "10:00 AM - 11:00 AM",
-    date: "Today",
-    color: "bg-blue-500",
-  },
-  {
-    title: "Project Deadline Review",
-    time: "2:30 PM - 3:30 PM",
-    date: "Today",
-    color: "bg-purple-500",
-  },
-  {
-    title: "Client Presentation",
-    time: "9:00 AM - 10:30 AM",
-    date: "Tomorrow",
-    color: "bg-red-500",
-  },
-  {
-    title: "Marketing Strategy Meeting",
-    time: "1:00 PM - 2:00 PM",
-    date: "Apr 20",
-    color: "bg-green-500",
-  },
-];
-
-const tasks = [
-  {
-    title: "Update dashboard UI design",
-    project: "Website Redesign",
-    priority: "High",
-    dueDate: "Today",
-    completed: false,
-  },
-  {
-    title: "Review analytics report",
-    project: "Marketing",
-    priority: "Medium",
-    dueDate: "Today",
-    completed: false,
-  },
-  {
-    title: "Send invoice to client",
-    project: "Finance",
-    priority: "Low",
-    dueDate: "Tomorrow",
-    completed: false,
-  },
-  {
-    title: "Schedule weekly team meeting",
-    project: "Team Management",
-    dueDate: "Apr 19",
-    completed: true,
-  },
-  {
-    title: "Research new product features",
-    project: "Product Development",
-    priority: "Medium",
-    dueDate: "Apr 20",
-    completed: false,
-  },
-];
-
-const notes = [
-  {
-    title: "Meeting Notes: Product Team",
-    updatedAt: "2 hours ago",
-    starred: true,
-  },
-  {
-    title: "Client Requirements Doc",
-    updatedAt: "Yesterday",
-    starred: true,
-  },
-  {
-    title: "Weekly Goals & Tasks",
-    updatedAt: "2 days ago",
-    starred: false,
-  },
-  {
-    title: "Project Timeline & Milestones",
-    updatedAt: "Apr 16",
-    starred: false,
-  },
-  {
-    title: "Research Links & Resources",
-    updatedAt: "Apr 15",
-    starred: false,
-  },
-];

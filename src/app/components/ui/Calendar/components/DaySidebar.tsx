@@ -31,61 +31,6 @@ const DaySidebar = ({
         transition={{ delay: 0.2 }}
         className="space-y-6"
       >
-        {/* Tasks widget */}
-        <div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm p-3">
-          <h3 className="font-medium text-gray-800 dark:text-gray-100 mb-3 flex items-center">
-            <CheckCircle
-              size={16}
-              className="mr-1 text-green-500 dark:text-green-400"
-            />
-            Tasks for Today
-          </h3>
-          <div className="space-y-2">
-            {tasksData.map((task) => (
-              <motion.div
-                key={task.id}
-                className="flex items-center gap-2 text-sm"
-                whileHover={{ x: 5 }}
-              >
-                <input
-                  type="checkbox"
-                  checked={task.completed}
-                  className="rounded text-blue-500 dark:text-blue-400 focus:ring-blue-500 dark:focus:ring-blue-400 dark:border-gray-500"
-                />
-                <span
-                  className={
-                    task.completed
-                      ? "line-through text-gray-400 dark:text-gray-400"
-                      : "text-gray-700 dark:text-gray-200"
-                  }
-                >
-                  {task.task}
-                </span>
-              </motion.div>
-            ))}
-            <div className="pt-2">
-              <button className="text-blue-500 dark:text-blue-400 text-sm flex items-center hover:text-blue-600 dark:hover:text-blue-300 transition-colors">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="mr-1"
-                >
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                Add task
-              </button>
-            </div>
-          </div>
-        </div>
-
         {/* Upcoming events preview */}
         <div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm p-3">
           <h3 className="font-medium text-gray-800 dark:text-gray-100 mb-3 flex items-center">
@@ -136,55 +81,6 @@ const DaySidebar = ({
                 No upcoming events for today
               </p>
             )}
-          </div>
-        </div>
-
-        {/* Search */}
-        <div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm p-3">
-          <div className="relative">
-            <Search
-              size={16}
-              className="absolute left-2 top-2.5 text-gray-400 dark:text-gray-500"
-            />
-            <input
-              type="text"
-              placeholder="Search events..."
-              className="pl-8 pr-3 py-2 w-full border dark:border-gray-600 rounded text-sm 
-                focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400
-                bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-            />
-          </div>
-        </div>
-
-        {/* Reminders */}
-        <div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm p-3">
-          <h3 className="font-medium text-gray-800 dark:text-gray-100 mb-2 flex items-center">
-            <BellRing
-              size={16}
-              className="mr-1 text-orange-500 dark:text-orange-400"
-            />
-            Reminders
-          </h3>
-          <div className="text-sm text-gray-600 dark:text-gray-300">
-            <p>No reminders for today</p>
-            <button className="text-blue-500 dark:text-blue-400 text-sm mt-2 flex items-center hover:text-blue-600 dark:hover:text-blue-300 transition-colors">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="mr-1"
-              >
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              Add reminder
-            </button>
           </div>
         </div>
       </motion.div>
