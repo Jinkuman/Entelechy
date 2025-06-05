@@ -13,6 +13,9 @@ import supabase from "@/lib/supabaseClient";
 import { showCalendarToast } from "@/app/components/ui/calendar/components/CalendarToast";
 import { showTaskToast } from "@/app/components/ui/tasks/components/TaskToast";
 import type { z } from "zod";
+import { FilterOptions } from "@/app/components/ui/tasks/components/TaskFilter";
+import TaskFilter from "@/app/components/ui/tasks/components/TaskFilter";
+import { useMemo } from "react";
 
 // Add a utility function for error handling
 const handleSupabaseError = (error: any): string => {
@@ -71,17 +74,58 @@ const TasksPage = () => {
   const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban");
   const [addSidebarOpen, setAddSidebarOpen] = useState(false);
   const [editSidebarOpen, setEditSidebarOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Group tasks by status for Kanban view
+  // Filter state
+  const [filters, setFilters] = useState<FilterOptions>({
+    search: "",
+    importance: [],
+    status: [],
+  });
+
+  // Filter tasks based on current filters
+  const filteredTasks = useMemo(() => {
+    return tasks.filter((task) => {
+      // Search filter
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        const matchesSearch =
+          task.title.toLowerCase().includes(searchLower) ||
+          (task.description &&
+            task.description.toLowerCase().includes(searchLower));
+        if (!matchesSearch) return false;
+      }
+
+      // Importance filter
+      if (filters.importance.length > 0) {
+        if (!filters.importance.includes(task.importance)) return false;
+      }
+
+      // Status filter
+      if (filters.status.length > 0) {
+        if (!filters.status.includes(task.status)) return false;
+      }
+
+      return true;
+    });
+  }, [tasks, filters]);
+
+  // Group filtered tasks by status for Kanban view
   const tasksByStatus: Record<string, Task[]> = {
-    uncompleted: tasks.filter((task) => task.status === "uncompleted"),
-    in_progress: tasks.filter((task) => task.status === "in_progress"),
-    completed: tasks.filter((task) => task.status === "completed"),
+    uncompleted: filteredTasks.filter((task) => task.status === "uncompleted"),
+    in_progress: filteredTasks.filter((task) => task.status === "in_progress"),
+    completed: filteredTasks.filter((task) => task.status === "completed"),
   };
+
+  // Check if any filters are active
+  const hasActiveFilters =
+    filters.search ||
+    filters.importance.length > 0 ||
+    filters.status.length > 0;
 
   useEffect(() => {
     fetchTasks();
@@ -166,6 +210,14 @@ const TasksPage = () => {
         fetchTasks();
       }
     }
+  };
+
+  const handleApplyFilters = (newFilters: FilterOptions) => {
+    setFilters(newFilters);
+  };
+
+  const toggleFilterSidebar = () => {
+    setFilterOpen(!filterOpen);
   };
   const toggleAddSidebar = () => {
     setAddSidebarOpen(!addSidebarOpen);
@@ -495,12 +547,24 @@ const TasksPage = () => {
         <div className="flex items-center gap-4">
           {/* Filter Button */}
           <motion.button
-            className="flex items-center gap-2 px-4 py-2 border rounded bg-white dark:bg-gray-800 dark:text-white dark:border-gray-700 shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700"
+            className={`flex items-center gap-2 px-4 py-2 border rounded shadow-sm transition-colors ${
+              hasActiveFilters
+                ? "bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300"
+                : "bg-white dark:bg-gray-800 dark:text-white dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+            }`}
+            onClick={toggleFilterSidebar}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             <Filter size={16} />
             <span>Filter</span>
+            {hasActiveFilters && (
+              <span className="ml-1 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {(filters.search ? 1 : 0) +
+                  filters.importance.length +
+                  filters.status.length}
+              </span>
+            )}
           </motion.button>
 
           {/* View Toggle */}
@@ -643,6 +707,13 @@ const TasksPage = () => {
         onUpdateTask={handleUpdateTask}
         onDeleteTask={handleDeleteTask}
         task={selectedTask}
+      />
+      {/* Filter Sidebar */}
+      <TaskFilter
+        isOpen={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        onApplyFilters={handleApplyFilters}
+        currentFilters={filters}
       />
     </div>
   );
