@@ -705,36 +705,38 @@ const TasksPage = () => {
         )}
 
       {/* Kanban / Table */}
-      {!isLoading && !error && (
-        <motion.div
-          className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-sm"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          style={{
-            width:
-              addSidebarOpen || editSidebarOpen || filterOpen
-                ? "calc(100% - 33.333%)"
-                : "100%",
-            transition: "width 0.3s ease-in-out",
-          }}
-        >
-          {viewMode === "kanban" ? (
-            <KanbanView
-              tasksByStatus={tasksByStatus}
-              handleDragEnd={handleDragEnd}
-              onTaskClick={handleTaskClick}
-            />
-          ) : (
-            <TableView
-              tasks={tasks}
-              onTaskUpdate={handleUpdateTask}
-              onTaskDelete={handleDeleteTask}
-              onTaskClick={handleTaskClick}
-            />
-          )}
-        </motion.div>
-      )}
+      {!isLoading &&
+        !error &&
+        (hasActiveFilters ? filteredTasks.length > 0 : tasks.length > 0) && (
+          <motion.div
+            className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-sm"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            style={{
+              width:
+                addSidebarOpen || editSidebarOpen || filterOpen
+                  ? "calc(100% - 33.333%)"
+                  : "100%",
+              transition: "width 0.3s ease-in-out",
+            }}
+          >
+            {viewMode === "kanban" ? (
+              <KanbanView
+                tasksByStatus={tasksByStatus}
+                handleDragEnd={handleDragEnd}
+                onTaskClick={handleTaskClick}
+              />
+            ) : (
+              <TableView
+                tasks={filteredTasks}
+                onTaskUpdate={handleUpdateTask}
+                onTaskDelete={handleDeleteTask}
+                onTaskClick={handleTaskClick}
+              />
+            )}
+          </motion.div>
+        )}
 
       {/* Add Task Sidebar */}
       <AddTaskSidebar
