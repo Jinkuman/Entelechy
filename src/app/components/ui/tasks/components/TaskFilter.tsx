@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Search, Filter } from "lucide-react";
+import { X, Search, Filter, Tag } from "lucide-react";
 
 export interface FilterOptions {
   search: string;
@@ -33,19 +33,50 @@ const TaskFilter = ({
   }, [currentFilters]);
 
   const importanceOptions = [
-    { value: "low", label: "Low", color: "bg-green-100 text-green-800" },
+    {
+      value: "low",
+      label: "Low",
+      activeClass:
+        "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+      inactiveClass: "bg-white dark:bg-gray-700 dark:text-white",
+    },
     {
       value: "medium",
       label: "Medium",
-      color: "bg-yellow-100 text-yellow-800",
+      activeClass:
+        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+      inactiveClass: "bg-white dark:bg-gray-700 dark:text-white",
     },
-    { value: "high", label: "High", color: "bg-red-100 text-red-800" },
+    {
+      value: "high",
+      label: "High",
+      activeClass:
+        "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+      inactiveClass: "bg-white dark:bg-gray-700 dark:text-white",
+    },
   ];
 
   const statusOptions = [
-    { value: "uncompleted", label: "Uncompleted" },
-    { value: "in_progress", label: "In Progress" },
-    { value: "completed", label: "Completed" },
+    {
+      value: "uncompleted",
+      label: "Uncompleted",
+      activeClass: "bg-red-100 text-red-800 dark:bg-red-600 dark:text-red-200",
+      inactiveClass: "bg-white dark:bg-gray-700 dark:text-white",
+    },
+    {
+      value: "in_progress",
+      label: "In Progress",
+      activeClass:
+        "bg-yellow-100 text-yellow-800 dark:bg-yellow-600 dark:text-yellow-200",
+      inactiveClass: "bg-white dark:bg-gray-700 dark:text-white",
+    },
+    {
+      value: "completed",
+      label: "Completed",
+      activeClass:
+        "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+      inactiveClass: "bg-white dark:bg-gray-700 dark:text-white",
+    },
   ];
 
   const handleImportanceToggle = (importance: string) => {
@@ -96,157 +127,180 @@ const TaskFilter = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          {/* Backdrop */}
+        <motion.div
+          className="fixed top-0 right-0 h-full w-1/3 bg-white dark:bg-gray-800 shadow-xl border-l dark:border-gray-700 p-6 z-40 flex flex-col"
+          initial={{ x: "100%" }}
+          animate={{ x: 0 }}
+          exit={{ x: "100%" }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        >
+          {/* Header */}
+          <div className="flex justify-between items-center mb-6">
+            <motion.div
+              className="flex items-center gap-2"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Filter size={20} className="text-gray-600 dark:text-gray-400" />
+              <h2 className="text-xl font-semibold dark:text-white">
+                Filter Tasks
+              </h2>
+            </motion.div>
+            <motion.button
+              onClick={onClose}
+              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <X size={20} className="dark:text-white" />
+            </motion.button>
+          </div>
+
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            className="space-y-6 flex-1"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-          />
-
-          {/* Filter Panel */}
-          <motion.div
-            className="fixed inset-y-0 right-0 w-96 bg-white dark:bg-gray-800 shadow-xl z-50 overflow-y-auto"
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            transition={{ delay: 0.3 }}
           >
-            <div className="p-6">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <Filter
-                    size={20}
-                    className="text-gray-600 dark:text-gray-400"
-                  />
-                  <h2 className="text-xl font-semibold dark:text-white">
-                    Filter Tasks
-                  </h2>
+            {/* Search */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Search Tasks
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search size={16} className="text-gray-400" />
                 </div>
-                <button
-                  onClick={onClose}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
-                >
-                  <X size={20} className="text-gray-600 dark:text-gray-400" />
-                </button>
+                <input
+                  type="text"
+                  placeholder="Search by title or description..."
+                  value={localFilters.search}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="w-full pl-10 px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                />
               </div>
-
-              {/* Search */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Search Tasks
-                </label>
-                <div className="relative">
-                  <Search
-                    size={16}
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Search by title or description..."
-                    value={localFilters.search}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-                  />
-                </div>
-              </div>
-
-              {/* Importance Filter */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  Importance Level
-                </label>
-                <div className="space-y-2">
-                  {importanceOptions.map((option) => (
-                    <label
-                      key={option.value}
-                      className="flex items-center cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={localFilters.importance.includes(option.value)}
-                        onChange={() => handleImportanceToggle(option.value)}
-                        className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${option.color}`}
-                      >
-                        {option.label}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Status Filter */}
-              <div className="mb-8">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  Task Status
-                </label>
-                <div className="space-y-2">
-                  {statusOptions.map((option) => (
-                    <label
-                      key={option.value}
-                      className="flex items-center cursor-pointer"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={localFilters.status.includes(option.value)}
-                        onChange={() => handleStatusToggle(option.value)}
-                        className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <span className="text-gray-700 dark:text-gray-300">
-                        {option.label}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3">
-                <button
-                  onClick={handleApply}
-                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                >
-                  Apply Filters
-                </button>
-                <button
-                  onClick={handleClear}
-                  disabled={!hasActiveFilters}
-                  className="flex-1 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Clear All
-                </button>
-              </div>
-
-              {/* Active Filters Summary */}
-              {hasActiveFilters && (
-                <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Active Filters:
-                  </h3>
-                  <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
-                    {localFilters.search && (
-                      <div>Search: "{localFilters.search}"</div>
-                    )}
-                    {localFilters.importance.length > 0 && (
-                      <div>
-                        Importance: {localFilters.importance.join(", ")}
-                      </div>
-                    )}
-                    {localFilters.status.length > 0 && (
-                      <div>Status: {localFilters.status.join(", ")}</div>
-                    )}
-                  </div>
-                </div>
-              )}
             </div>
+
+            {/* Importance Filter */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Importance Level
+              </label>
+              <div className="flex gap-2">
+                {importanceOptions.map((option) => (
+                  <motion.button
+                    key={option.value}
+                    className={`flex-1 py-2 px-3 border rounded-md text-sm font-medium transition-colors ${
+                      localFilters.importance.includes(option.value)
+                        ? option.activeClass
+                        : option.inactiveClass
+                    } border-gray-300 dark:border-gray-600`}
+                    onClick={() => handleImportanceToggle(option.value)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {option.label}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+
+            {/* Status Filter */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Task Status
+              </label>
+              <div className="space-y-2">
+                {statusOptions.map((option) => (
+                  <motion.button
+                    key={option.value}
+                    className={`w-full py-2 px-3 border rounded-md text-sm font-medium text-left transition-colors ${
+                      localFilters.status.includes(option.value)
+                        ? option.activeClass
+                        : option.inactiveClass
+                    } border-gray-300 dark:border-gray-600`}
+                    onClick={() => handleStatusToggle(option.value)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span>{option.label}</span>
+                      {localFilters.status.includes(option.value) && (
+                        <motion.div
+                          className="w-2 h-2 bg-current rounded-full"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ duration: 0.2 }}
+                        />
+                      )}
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+
+            {/* Active Filters Summary */}
+            {hasActiveFilters && (
+              <motion.div
+                className="p-4 bg-gray-50 dark:bg-gray-700 rounded-md"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Tag size={14} className="text-gray-500 dark:text-gray-400" />
+                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Active Filters
+                  </h3>
+                </div>
+                <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                  {localFilters.search && (
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      <span>Search: "{localFilters.search}"</span>
+                    </div>
+                  )}
+                  {localFilters.importance.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+                      <span>
+                        Importance: {localFilters.importance.join(", ")}
+                      </span>
+                    </div>
+                  )}
+                  {localFilters.status.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                      <span>Status: {localFilters.status.join(", ")}</span>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
           </motion.div>
-        </>
+
+          {/* Action Buttons */}
+          <div className="mt-auto pt-6 space-y-3">
+            <motion.button
+              onClick={handleApply}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md font-medium transition-colors"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              Apply Filters
+            </motion.button>
+            <motion.button
+              onClick={handleClear}
+              disabled={!hasActiveFilters}
+              className="w-full bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 py-2 rounded-md font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-300 dark:hover:bg-gray-500"
+              whileHover={hasActiveFilters ? { scale: 1.03 } : {}}
+              whileTap={hasActiveFilters ? { scale: 0.97 } : {}}
+            >
+              Clear All Filters
+            </motion.button>
+          </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );

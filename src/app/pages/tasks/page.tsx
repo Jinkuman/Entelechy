@@ -536,14 +536,30 @@ const TasksPage = () => {
     <div className="p-6 max-w-7xl mx-auto relative transition-colors duration-300">
       {/* Header and view toggle */}
       <div className="flex justify-between items-center mb-6">
-        <motion.h1
-          className="text-2xl font-bold dark:text-white"
+        <motion.div
+          className="flex items-center gap-4"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          Tasks
-        </motion.h1>
+          <h1 className="text-2xl font-bold dark:text-white">Tasks</h1>
+
+          {/* Active filters indicator */}
+          {hasActiveFilters && (
+            <motion.div
+              className="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Filter size={14} />
+              <span>
+                {filteredTasks.length} of {tasks.length} tasks
+              </span>
+            </motion.div>
+          )}
+        </motion.div>
+
         <div className="flex items-center gap-4">
           {/* Filter Button */}
           <motion.button
@@ -661,6 +677,33 @@ const TasksPage = () => {
         </div>
       )}
 
+      {/* No results message */}
+      {!isLoading &&
+        !error &&
+        hasActiveFilters &&
+        filteredTasks.length === 0 && (
+          <motion.div
+            className="text-center py-12"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            style={{
+              width: filterOpen ? "calc(100% - 33.333%)" : "100%",
+              transition: "width 0.3s ease-in-out",
+            }}
+          >
+            <div className="text-gray-500 dark:text-gray-400">
+              <Filter size={48} className="mx-auto mb-4 opacity-50" />
+              <h3 className="text-lg font-medium mb-2">
+                No tasks match your filters
+              </h3>
+              <p className="text-sm">
+                Try adjusting your filter criteria to see more results.
+              </p>
+            </div>
+          </motion.div>
+        )}
+
       {/* Kanban / Table */}
       {!isLoading && !error && (
         <motion.div
@@ -670,7 +713,7 @@ const TasksPage = () => {
           transition={{ duration: 0.5, delay: 0.3 }}
           style={{
             width:
-              addSidebarOpen || editSidebarOpen
+              addSidebarOpen || editSidebarOpen || filterOpen
                 ? "calc(100% - 33.333%)"
                 : "100%",
             transition: "width 0.3s ease-in-out",
