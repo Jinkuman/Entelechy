@@ -102,7 +102,10 @@ export function Sidebar({ className }: SidebarProps) {
   const router = useRouter();
   const profileRef = useRef<HTMLDivElement>(null);
   const { user, loading, error } = useUser();
-  const displayName = user?.user_metadata?.full_name || user?.email || "User";
+  const name =
+    user?.user_metadata?.name ||
+    user?.email || // Fallback to email
+    "User";
   const email = user?.email || "user@example.com";
 
   // Initialize dark mode from localStorage or system preference
@@ -313,7 +316,7 @@ export function Sidebar({ className }: SidebarProps) {
           {!collapsed && (
             <div className="overflow-hidden flex-1 text-left">
               <div className="font-medium truncate dark:text-white">
-                {loading ? "Loading..." : displayName}
+                {loading ? "Loading..." : name}
               </div>
               <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate">
                 {loading ? "..." : email}
