@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 
 import { signUpForm, signUpSchema } from "@/app/schemas/authSchema";
 import supabase from "@/lib/supabaseClient";
+import GoogleSignIn from "@/app/components/GoogleSignIn";
 
 export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
@@ -50,6 +51,21 @@ export default function SignUpPage() {
           <p className="mt-1 text-sm text-zinc-400">
             Join us and start your journey toward becoming your best self.
           </p>
+        </div>
+
+        {/* Google Sign-in */}
+        <GoogleSignIn mode="sign-up" className="mb-6" />
+
+        {/* Divider */}
+        <div className="relative mb-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-zinc-700"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-zinc-900 px-2 text-zinc-400">
+              Or sign up with email
+            </span>
+          </div>
         </div>
 
         {/* Sign-up Form */}
