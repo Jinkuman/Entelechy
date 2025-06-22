@@ -22,7 +22,7 @@ export async function fetchUserNotes(userId: string): Promise<Note[]> {
     throw new Error(`Failed to fetch notes: ${error.message}`);
   }
 
-  // Transform database notes to our Note type
+  // Transform database notes to our Note type, handling null starred values
   return (data as DatabaseNote[]).map((note) => ({
     id: note.id,
     user_id: note.user_id,
@@ -33,7 +33,7 @@ export async function fetchUserNotes(userId: string): Promise<Note[]> {
     related_id: note.related_id,
     created_at: note.created_at,
     updated_at: note.updated_at,
-    starred: note.starred || false,
+    starred: note.starred === null ? false : note.starred,
   }));
 }
 
@@ -65,7 +65,7 @@ export async function createNote(
   const transformedNote = {
     ...data,
     tags: Array.isArray(data.tags) ? data.tags : [],
-    starred: data.starred || false,
+    starred: data.starred === null ? false : data.starred,
   };
 
   return transformedNote as Note;
@@ -98,7 +98,7 @@ export async function updateNote(
   const transformedNote = {
     ...data,
     tags: Array.isArray(data.tags) ? data.tags : [],
-    starred: data.starred || false,
+    starred: data.starred === null ? false : data.starred,
   };
 
   return transformedNote as Note;
@@ -178,8 +178,10 @@ export async function toggleStarred(noteId: string): Promise<Note> {
     throw new Error(`Failed to fetch note: ${fetchError.message}`);
   }
 
-  // Toggle the starred status
-  const newStarredStatus = !currentNote.starred;
+  // Toggle the starred status, handling null values
+  const currentStarred =
+    currentNote.starred === null ? false : currentNote.starred;
+  const newStarredStatus = !currentStarred;
 
   const { data, error } = await supabase
     .from("notes")
@@ -199,7 +201,7 @@ export async function toggleStarred(noteId: string): Promise<Note> {
   const transformedNote = {
     ...data,
     tags: Array.isArray(data.tags) ? data.tags : [],
-    starred: data.starred || false,
+    starred: data.starred === null ? false : data.starred,
   };
 
   return transformedNote as Note;

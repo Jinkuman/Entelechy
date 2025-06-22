@@ -21,8 +21,14 @@ export async function fetchUserNotes(userId: string): Promise<Note[]> {
     return data
       .map((note) => {
         try {
+          // Handle null starred values before validation
+          const processedNote = {
+            ...note,
+            starred: note.starred === null ? false : note.starred,
+          };
+
           // Validate with Zod schema
-          return NoteSchema.parse(note);
+          return NoteSchema.parse(processedNote);
         } catch (parseError) {
           console.error("Error parsing note:", parseError, note);
           return null;

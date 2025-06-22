@@ -10,7 +10,10 @@ export const NoteSchema = z.object({
   related_id: z.string().uuid().nullable(),
   created_at: z.string(),
   updated_at: z.string(),
-  starred: z.boolean().default(false),
+  starred: z
+    .boolean()
+    .nullable()
+    .transform((val) => val ?? false),
 });
 
 export type Note = z.infer<typeof NoteSchema>;

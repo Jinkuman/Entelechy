@@ -6,7 +6,10 @@ export const CreateNoteSchema = z.object({
   tags: z.array(z.string()).default([]),
   related_type: z.string().optional(),
   related_id: z.string().uuid().optional(),
-  starred: z.boolean().default(false),
+  starred: z
+    .boolean()
+    .nullable()
+    .transform((val) => val ?? false),
 });
 
 export const UpdateNoteSchema = z.object({
@@ -40,7 +43,7 @@ export interface DatabaseNote {
   related_id: string | null;
   created_at: string;
   updated_at: string;
-  starred: boolean;
+  starred: boolean | null;
 }
 
 export interface TagFilter {
