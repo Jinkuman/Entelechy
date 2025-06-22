@@ -245,7 +245,7 @@ export default function Dashboard() {
             title="Notes"
             value={notes.length}
             description={`${
-              notes.filter((n) => n.tags && n.tags.includes("starred")).length
+              notes.filter((n) => n.starred).length
             } starred notes`}
             trend={`${
               notes.filter((n) => {
