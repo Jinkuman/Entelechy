@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { type Note } from "@/app/schemas/notesSchema";
-import { updateNote, fetchUserNotes } from "../lib/notes-client";
+import { updateNote, fetchUserNotes, toggleStarred } from "../lib/notes-client";
 import { formatDate } from "../lib/utils";
 import { TagBadge } from "./tag-badge";
 import { TagInput } from "./tag-input";
@@ -11,7 +11,9 @@ import {
   PencilIcon,
   CheckIcon,
   DocumentTextIcon,
+  StarIcon,
 } from "@heroicons/react/24/outline";
+import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 
 interface NoteViewerProps {
   note: Note;
@@ -34,6 +36,7 @@ export function NoteViewer({
     Array.isArray(note.tags) ? note.tags : []
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [isStarring, setIsStarring] = useState(false);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -78,6 +81,19 @@ export function NoteViewer({
     }
   };
 
+  const handleStarToggle = async () => {
+    setIsStarring(true);
+    try {
+      await toggleStarred(note.id);
+      const updatedNotes = await fetchUserNotes(userId);
+      onNotesChange(updatedNotes);
+    } catch (error) {
+      console.error("Failed to toggle starred status:", error);
+    } finally {
+      setIsStarring(false);
+    }
+  };
+
   return (
     <div
       className={`fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all duration-300 ${
@@ -112,6 +128,23 @@ export function NoteViewer({
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Star Button */}
+            <button
+              onClick={handleStarToggle}
+              disabled={isStarring}
+              className={`p-2 rounded-lg transition-colors duration-200 ${
+                note.starred
+                  ? "bg-yellow-50 text-yellow-600 hover:bg-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-400 dark:hover:bg-yellow-900/30"
+                  : "bg-gray-100 text-gray-400 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
+              } ${isStarring ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              {note.starred ? (
+                <StarIconSolid className="h-5 w-5" />
+              ) : (
+                <StarIcon className="h-5 w-5" />
+              )}
+            </button>
+
             {isEditing ? (
               <>
                 <button

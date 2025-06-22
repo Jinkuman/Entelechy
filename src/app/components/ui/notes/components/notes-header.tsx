@@ -1,6 +1,7 @@
 import { type NotesStats } from "../lib/types";
 import { type Note } from "@/app/schemas/notesSchema";
 import { CreateNoteButton } from "./create-note-button";
+import { StarIcon } from "@heroicons/react/24/solid";
 
 interface NotesHeaderProps {
   stats: NotesStats;
@@ -50,6 +51,16 @@ export function NotesHeader({
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
               New this week
+            </div>
+          </div>
+
+          <div className="text-center">
+            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 flex items-center justify-center gap-1">
+              <StarIcon className="h-5 w-5" />
+              {stats.starred}
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              Starred
             </div>
           </div>
         </div>

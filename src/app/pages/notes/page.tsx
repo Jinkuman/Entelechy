@@ -15,6 +15,8 @@ import { NotesGrid } from "@/app/components/ui/notes/components/notes-grid";
 import { SearchBar } from "@/app/components/ui/notes/components/search-bar";
 import { TagFilter } from "@/app/components/ui/notes/components/tag-filter";
 import { LoadingSpinner } from "@/app/components/ui/notes/components/loading-spinner";
+import { StarIcon } from "@heroicons/react/24/outline";
+import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 
 export default function NotesPage() {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -23,12 +25,14 @@ export default function NotesPage() {
     updatedRecently: 0,
     newThisWeek: 0,
     totalTags: 0,
+    starred: 0,
   });
   const [userId, setUserId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [showStarredOnly, setShowStarredOnly] = useState(false);
 
   // Fetch user and their notes
   useEffect(() => {
@@ -63,11 +67,16 @@ export default function NotesPage() {
   // Get available tags
   const availableTags = useMemo(() => getAllTags(notes), [notes]);
 
-  // Filter notes based on search query and selected tags
+  // Filter notes based on search query, selected tags, and starred status
   const filteredNotes = useMemo(() => {
     let filtered = notes;
 
-    // Apply tag filter first
+    // Apply starred filter first
+    if (showStarredOnly) {
+      filtered = filtered.filter((note) => note.starred);
+    }
+
+    // Apply tag filter
     if (selectedTags.length > 0) {
       filtered = filterNotesByTags(filtered, selectedTags);
     }
@@ -89,8 +98,17 @@ export default function NotesPage() {
       }
     }
 
+    // Sort: starred notes first, then by updated_at
+    filtered.sort((a, b) => {
+      if (a.starred && !b.starred) return -1;
+      if (!a.starred && b.starred) return 1;
+      return (
+        new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      );
+    });
+
     return filtered;
-  }, [notes, searchQuery, selectedTags]);
+  }, [notes, searchQuery, selectedTags, showStarredOnly]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -137,6 +155,24 @@ export default function NotesPage() {
               selectedTags={selectedTags}
               onTagsChange={setSelectedTags}
             />
+            {/* Starred Filter Button */}
+            <button
+              onClick={() => setShowStarredOnly(!showStarredOnly)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors duration-200 ${
+                showStarredOnly
+                  ? "bg-yellow-50 border-yellow-200 text-yellow-700 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-400"
+                  : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              }`}
+            >
+              {showStarredOnly ? (
+                <StarIconSolid className="h-4 w-4" />
+              ) : (
+                <StarIcon className="h-4 w-4" />
+              )}
+              <span className="text-sm font-medium">
+                {showStarredOnly ? "Starred" : "All"}
+              </span>
+            </button>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500 dark:text-gray-400">

@@ -1,6 +1,6 @@
 // components/AuthGuard.tsx
 import { useAuth } from "../hooks/useAuth";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect, ReactNode } from "react";
 
 interface AuthGuardProps {
@@ -14,12 +14,24 @@ export function AuthGuard({
 }: AuthGuardProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Define auth routes that don't require authentication
+  const authRoutes = ["/auth", "/login", "/signup", "/register"];
+  const isAuthRoute = authRoutes.some((route) => pathname?.startsWith(route));
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.replace(redirectTo);
+    if (!loading) {
+      // If user is not authenticated and trying to access a protected route
+      if (!user && !isAuthRoute) {
+        router.replace(redirectTo);
+      }
+      // If user is authenticated and trying to access an auth route, redirect to dashboard
+      else if (user && isAuthRoute) {
+        router.replace("/pages/dashboard");
+      }
     }
-  }, [user, loading, router, redirectTo]);
+  }, [user, loading, router, redirectTo, isAuthRoute, pathname]);
 
   // Show loading spinner while checking auth
   if (loading) {
@@ -30,7 +42,12 @@ export function AuthGuard({
     );
   }
 
-  // Don't render children if user is not authenticated
+  // Allow access to auth routes even if user is not authenticated
+  if (isAuthRoute) {
+    return <>{children}</>;
+  }
+
+  // Don't render children if user is not authenticated and trying to access protected route
   if (!user) {
     return null;
   }

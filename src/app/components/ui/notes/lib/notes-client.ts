@@ -15,6 +15,7 @@ export async function fetchUserNotes(userId: string): Promise<Note[]> {
     .from("notes")
     .select("*")
     .eq("user_id", userId)
+    .order("starred", { ascending: false })
     .order("updated_at", { ascending: false });
 
   if (error) {
@@ -32,6 +33,7 @@ export async function fetchUserNotes(userId: string): Promise<Note[]> {
     related_id: note.related_id,
     created_at: note.created_at,
     updated_at: note.updated_at,
+    starred: note.starred || false,
   }));
 }
 
@@ -49,6 +51,7 @@ export async function createNote(
         tags: noteData.tags || [],
         related_type: noteData.related_type || null,
         related_id: noteData.related_id || null,
+        starred: noteData.starred || false,
       },
     ])
     .select()
@@ -62,6 +65,7 @@ export async function createNote(
   const transformedNote = {
     ...data,
     tags: Array.isArray(data.tags) ? data.tags : [],
+    starred: data.starred || false,
   };
 
   return transformedNote as Note;
@@ -79,6 +83,7 @@ export async function updateNote(
       tags: noteData.tags || [],
       related_type: noteData.related_type || null,
       related_id: noteData.related_id || null,
+      starred: noteData.starred !== undefined ? noteData.starred : undefined,
       updated_at: new Date().toISOString(),
     })
     .eq("id", noteId)
@@ -93,6 +98,7 @@ export async function updateNote(
   const transformedNote = {
     ...data,
     tags: Array.isArray(data.tags) ? data.tags : [],
+    starred: data.starred || false,
   };
 
   return transformedNote as Note;
@@ -118,6 +124,7 @@ export function calculateNotesStats(notes: Note[]): NotesStats {
   const updatedRecently = notes.filter(
     (note) => new Date(note.updated_at) >= oneDayAgo
   ).length;
+  const starred = notes.filter((note) => note.starred).length;
 
   // Get all unique tags - with safety check
   const allTags = new Set<string>();
@@ -131,7 +138,7 @@ export function calculateNotesStats(notes: Note[]): NotesStats {
   });
   const totalTags = allTags.size;
 
-  return { total, updatedRecently, newThisWeek, totalTags };
+  return { total, updatedRecently, newThisWeek, totalTags, starred };
 }
 
 export function getAllTags(notes: Note[]): string[] {
@@ -157,4 +164,43 @@ export function filterNotesByTags(
     const noteTags = Array.isArray(note.tags) ? note.tags : [];
     return selectedTags.every((tag) => noteTags.includes(tag));
   });
+}
+
+export async function toggleStarred(noteId: string): Promise<Note> {
+  // First get the current note to get its starred status
+  const { data: currentNote, error: fetchError } = await supabase
+    .from("notes")
+    .select("starred")
+    .eq("id", noteId)
+    .single();
+
+  if (fetchError) {
+    throw new Error(`Failed to fetch note: ${fetchError.message}`);
+  }
+
+  // Toggle the starred status
+  const newStarredStatus = !currentNote.starred;
+
+  const { data, error } = await supabase
+    .from("notes")
+    .update({
+      starred: newStarredStatus,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", noteId)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to toggle starred status: ${error.message}`);
+  }
+
+  // Transform the returned data
+  const transformedNote = {
+    ...data,
+    tags: Array.isArray(data.tags) ? data.tags : [],
+    starred: data.starred || false,
+  };
+
+  return transformedNote as Note;
 }

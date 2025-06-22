@@ -6,6 +6,7 @@ export const CreateNoteSchema = z.object({
   tags: z.array(z.string()).default([]),
   related_type: z.string().optional(),
   related_id: z.string().uuid().optional(),
+  starred: z.boolean().default(false),
 });
 
 export const UpdateNoteSchema = z.object({
@@ -14,6 +15,7 @@ export const UpdateNoteSchema = z.object({
   tags: z.array(z.string()).default([]),
   related_type: z.string().optional(),
   related_id: z.string().uuid().optional(),
+  starred: z.boolean().optional(),
 });
 
 export type CreateNote = z.infer<typeof CreateNoteSchema>;
@@ -24,6 +26,7 @@ export interface NotesStats {
   updatedRecently: number;
   newThisWeek: number;
   totalTags: number;
+  starred: number;
 }
 
 // Raw database type
@@ -37,6 +40,7 @@ export interface DatabaseNote {
   related_id: string | null;
   created_at: string;
   updated_at: string;
+  starred: boolean;
 }
 
 export interface TagFilter {

@@ -51,7 +51,7 @@ export function CreateNoteButton({
 
     setIsSaving(true);
     try {
-      await createNote(userId, { content, tags, title });
+      await createNote(userId, { content, tags, title, starred: false });
       const updatedNotes = await fetchUserNotes(userId);
       onNotesChange(updatedNotes);
 

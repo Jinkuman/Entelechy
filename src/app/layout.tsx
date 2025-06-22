@@ -6,6 +6,7 @@ import { Sidebar } from "./components/sidebar";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { usePathname } from "next/navigation";
+import { AuthGuard } from "./components/authGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,24 +29,29 @@ export default function RootLayout({
   const authRoutes = ["/auth", "/login", "/signup", "/register"];
   const hideSidebar = authRoutes.some((route) => pathname?.startsWith(route));
 
+  // Check if current route is an auth route
+  const isAuthRoute = authRoutes.some((route) => pathname?.startsWith(route));
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="flex h-screen">
-          {/* Conditionally render sidebar */}
-          {!hideSidebar && <Sidebar />}
+        <AuthGuard>
+          <div className="flex h-screen">
+            {/* Conditionally render sidebar */}
+            {!hideSidebar && <Sidebar />}
 
-          {/* Main area - full width on auth pages, with sidebar space otherwise */}
-          <main
-            className={`flex-1 h-full overflow-auto ${
-              hideSidebar ? "w-full" : ""
-            }`}
-          >
-            {children}
-          </main>
-        </div>
+            {/* Main area - full width on auth pages, with sidebar space otherwise */}
+            <main
+              className={`flex-1 h-full overflow-auto ${
+                hideSidebar ? "w-full" : ""
+              }`}
+            >
+              {children}
+            </main>
+          </div>
+        </AuthGuard>
         <Toaster position="bottom-right" />
       </body>
     </html>
