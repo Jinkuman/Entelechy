@@ -5,6 +5,7 @@ import { type Note } from "@/app/schemas/notesSchema";
 import { updateNote, fetchUserNotes } from "../lib/notes-client";
 import { TagInput } from "./tag-input";
 import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
+import { notesToastUtils } from "./notes-toast-utils";
 
 interface NoteEditorProps {
   note?: Note;
@@ -43,14 +44,33 @@ export function NoteEditor({
   const handleSave = async () => {
     if (!content.trim() || !note) return;
 
+    // Check if there are actual changes
+    const hasChanges =
+      note.content !== content ||
+      note.title !== title ||
+      JSON.stringify(note.tags || []) !== JSON.stringify(tags);
+
+    // If no changes, just close without saving or showing toast
+    if (!hasChanges) {
+      handleClose();
+      return;
+    }
+
     setIsSaving(true);
     try {
       await updateNote(note.id, { content, tags, title });
       const updatedNotes = await fetchUserNotes(userId);
       onNotesChange(updatedNotes);
+
+      // Show success toast
+      notesToastUtils.noteUpdated(title || "Untitled Note");
+
       handleClose();
     } catch (error) {
       console.error("Failed to save note:", error);
+
+      // Show error toast
+      notesToastUtils.noteUpdateError();
     } finally {
       setIsSaving(false);
     }

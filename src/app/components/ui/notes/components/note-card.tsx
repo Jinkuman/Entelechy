@@ -7,6 +7,7 @@ import { formatDate } from "../lib/utils";
 import { TagBadge } from "./tag-badge";
 import { NoteViewer } from "./note-viewer";
 import { NoteEditor } from "./note-editor";
+import { notesToastUtils } from "./notes-toast-utils";
 import {
   EllipsisVerticalIcon,
   PencilIcon,
@@ -44,8 +45,14 @@ export function NoteCard({
       await deleteNote(note.id);
       const updatedNotes = await fetchUserNotes(userId);
       onNotesChange(updatedNotes);
+
+      // Show success toast
+      notesToastUtils.noteDeleted(note.title || "Untitled Note");
     } catch (error) {
       console.error("Failed to delete note:", error);
+
+      // Show error toast
+      notesToastUtils.noteDeleteError();
     } finally {
       setIsDeleting(false);
     }
@@ -58,8 +65,35 @@ export function NoteCard({
       await toggleStarred(note.id);
       const updatedNotes = await fetchUserNotes(userId);
       onNotesChange(updatedNotes);
+
+      // Show success toast for starring/unstarring
+      const action = note.starred ? "unstarred" : "starred";
+      import("@/app/components/ui/standardized-toast").then(
+        ({ showStandardizedToast }) => {
+          showStandardizedToast({
+            title: `Note ${action}`,
+            description: `"${
+              note.title || "Untitled Note"
+            }" has been ${action}`,
+            type: "success",
+            category: "notes",
+          });
+        }
+      );
     } catch (error) {
       console.error("Failed to toggle starred status:", error);
+
+      // Show error toast
+      import("@/app/components/ui/standardized-toast").then(
+        ({ showStandardizedToast }) => {
+          showStandardizedToast({
+            title: "Failed to update note",
+            description: "There was an error updating the starred status",
+            type: "error",
+            category: "notes",
+          });
+        }
+      );
     } finally {
       setIsStarring(false);
     }

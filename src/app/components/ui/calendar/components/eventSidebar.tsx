@@ -10,11 +10,6 @@ import {
 } from "./utils/dateUtils";
 import { colorOptions, getEventColorClasses } from "./utils/colorUtils";
 import { useState } from "react";
-import {
-  showSuccessToast,
-  showErrorToast,
-  showDeleteToast,
-} from "@/app/components/ui/sonner";
 
 interface EventSidebarProps {
   showEventSidebar: boolean;
@@ -52,9 +47,6 @@ const EventSidebar = ({
   const handleSave = async () => {
     setIsClosing(true);
 
-    // Show success toast notification using our custom toast
-    showSuccessToast("Event Updated", editedEvent?.title as string);
-
     // Call the save function
     saveEventChanges();
 
@@ -66,9 +58,6 @@ const EventSidebar = ({
 
   const handleDelete = async () => {
     setIsClosing(true);
-
-    // Show error toast notification using our custom toast
-    showDeleteToast("Event Deleted", selectedEvent.title);
 
     // Call the delete function
     deleteEvent();

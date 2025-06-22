@@ -80,10 +80,41 @@ const CreateEventSidebar = ({
 
   // Handle form field changes
   const handleFieldChange = (field: string, value: any) => {
-    setNewEvent({
-      ...newEvent,
-      [field]: value,
-    });
+    if (field === "allDay") {
+      const isAllDay = value;
+      if (isAllDay) {
+        // Set start time to beginning of day (00:00)
+        const startOfDay = new Date(newEvent.startTime);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        // Set end time to end of day (23:59)
+        const endOfDay = new Date(newEvent.startTime);
+        endOfDay.setHours(23, 59, 0, 0);
+
+        setNewEvent({
+          ...newEvent,
+          allDay: isAllDay,
+          startTime: startOfDay,
+          endTime: endOfDay,
+        });
+      } else {
+        // When turning off all-day, set to current time or initial hour
+        const newStartTime = getInitialStartTime();
+        const newEndTime = getInitialEndTime();
+
+        setNewEvent({
+          ...newEvent,
+          allDay: isAllDay,
+          startTime: newStartTime,
+          endTime: newEndTime,
+        });
+      }
+    } else {
+      setNewEvent({
+        ...newEvent,
+        [field]: value,
+      });
+    }
   };
 
   // Safely create a date from input values
@@ -187,8 +218,21 @@ const CreateEventSidebar = ({
         throw new Error("Event title is required");
       }
 
-      if (newEvent.startTime >= newEvent.endTime) {
-        throw new Error("End time must be after start time");
+      // For all-day events, validate that end date is not before start date
+      if (newEvent.allDay) {
+        const startDate = new Date(newEvent.startTime);
+        const endDate = new Date(newEvent.endTime);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(0, 0, 0, 0);
+
+        if (endDate < startDate) {
+          throw new Error("End date must be on or after start date");
+        }
+      } else {
+        // For timed events, validate that end time is after start time
+        if (newEvent.startTime >= newEvent.endTime) {
+          throw new Error("End time must be after start time");
+        }
       }
 
       // Validate dates are valid
@@ -206,9 +250,6 @@ const CreateEventSidebar = ({
       // Start closing animation
       setIsClosing(true);
 
-      // Show toast notification using sonner directly
-      showSuccessToast("Event Created", newEvent.title);
-
       // Reset form
       setTimeout(() => {
         setShowSidebar(false);
@@ -218,12 +259,6 @@ const CreateEventSidebar = ({
       console.error("Error in form submission:", err);
       setError(err instanceof Error ? err.message : "Failed to create event");
       setIsSubmitting(false);
-
-      // Show error toast
-      showErrorToast(
-        "Error Creating Event",
-        err instanceof Error ? err.message : "Failed to create event"
-      );
     }
   };
 

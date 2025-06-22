@@ -10,8 +10,7 @@ import AddTaskSidebar from "../../components/ui/tasks/components/TaskSidebar";
 import EditTaskSidebar from "@/app/components/ui/tasks/components/editTaskSidebar";
 import { taskSchema } from "@/app/schemas/taskSchema";
 import supabase from "@/lib/supabaseClient";
-import { showCalendarToast } from "@/app/components/ui/calendar/components/CalendarToast";
-import { showTaskToast } from "@/app/components/ui/tasks/components/TaskToast";
+import { tasksToasts } from "@/app/components/ui/toast-utils";
 import type { z } from "zod";
 import { FilterOptions } from "@/app/components/ui/tasks/components/TaskFilter";
 import TaskFilter from "@/app/components/ui/tasks/components/TaskFilter";
@@ -191,21 +190,10 @@ const TasksPage = () => {
           throw error;
         }
 
-        // Show success toast with the enhanced toast
-        showTaskToast({
-          title: `Task status updated`,
-          description: `"${taskTitle}" moved to ${statusDisplayName}`,
-          type: "success",
-          duration: 3000, // 3 seconds
-        });
+        // No toast for status changes as requested
       } catch (err) {
         console.error("Error updating task status:", err);
-        showTaskToast({
-          title: "Failed to update task status",
-          description: handleSupabaseError(err),
-          type: "error",
-          duration: 5000, // 5 seconds for errors
-        });
+        tasksToasts.taskError("update status", handleSupabaseError(err));
         // Revert the optimistic update
         fetchTasks();
       }
@@ -305,20 +293,15 @@ const TasksPage = () => {
       // Refresh the task list
       fetchTasks();
 
-      showCalendarToast({
-        title: "Task added successfully",
-        type: "success",
-      });
+      // Show success toast
+      tasksToasts.taskCreated(newTaskData.title);
 
       return true; // Return success for the sidebar to handle
     } catch (err) {
       const errorMessage = handleSupabaseError(err);
 
-      showCalendarToast({
-        title: "Failed to add task",
-        description: errorMessage,
-        type: "error",
-      });
+      // Show error toast
+      tasksToasts.taskError("create", errorMessage);
 
       return false; // Return failure for the sidebar to handle
     }
@@ -333,6 +316,33 @@ const TasksPage = () => {
           message: "Invalid task ID",
           code: "INVALID_ID",
         };
+      }
+
+      // Get the task title for the toast
+      const taskToUpdate = tasks.find((task) => task.id === taskId);
+      const taskTitle = taskToUpdate?.title || "Task";
+
+      // Check if there are actual changes
+      const hasChanges = Object.keys(updates).some((key) => {
+        if (key === "dueDate") {
+          const currentDueDate = taskToUpdate?.dueDate;
+          const newDueDate = updates.dueDate;
+
+          // Handle null/undefined cases
+          if (!currentDueDate && !newDueDate) return false;
+          if (!currentDueDate && newDueDate) return true;
+          if (currentDueDate && !newDueDate) return true;
+
+          // Compare dates
+          return currentDueDate?.getTime() !== newDueDate?.getTime();
+        }
+
+        return taskToUpdate?.[key as keyof Task] !== updates[key as keyof Task];
+      });
+
+      // If no changes, don't update or show toast
+      if (!hasChanges) {
+        return true;
       }
 
       // Optimistically update UI
@@ -373,15 +383,15 @@ const TasksPage = () => {
         throw updateError;
       }
 
+      // Show success toast only if there were changes
+      tasksToasts.taskUpdated(taskTitle);
+
       return true; // Return success for the sidebar to handle
     } catch (err) {
       const errorMessage = handleSupabaseError(err);
 
-      showCalendarToast({
-        title: "Failed to update task",
-        description: errorMessage,
-        type: "error",
-      });
+      // Show error toast
+      tasksToasts.taskError("update", errorMessage);
 
       // Revert the optimistic update
       fetchTasks();
@@ -391,45 +401,26 @@ const TasksPage = () => {
 
   const handleDeleteTask = async (taskId: string) => {
     try {
-      // Validate the task ID
-      if (!taskId || typeof taskId !== "string") {
-        throw {
-          message: "Invalid task ID",
-          code: "INVALID_ID",
-        };
+      // Get the task title before deleting for the toast
+      const taskToDelete = tasks.find((task) => task.id === taskId);
+      const taskTitle = taskToDelete?.title || "Task";
+
+      const { error } = await supabase.from("tasks").delete().eq("id", taskId);
+
+      if (error) {
+        throw error;
       }
 
-      // Optimistically update UI
+      // Update local state
       setTasks((prev) => prev.filter((task) => task.id !== taskId));
 
-      // Delete from Supabase
-      const { error: deleteError } = await supabase
-        .from("tasks")
-        .delete()
-        .eq("id", taskId);
-
-      if (deleteError) {
-        throw deleteError;
-      }
-
-      showCalendarToast({
-        title: "Task deleted successfully",
-        type: "success",
-      });
-
-      return true; // Return success for the sidebar to handle
+      // Show success toast
+      tasksToasts.taskDeleted(taskTitle);
     } catch (err) {
       const errorMessage = handleSupabaseError(err);
 
-      showCalendarToast({
-        title: "Failed to delete task",
-        description: errorMessage,
-        type: "error",
-      });
-
-      // Revert the optimistic update
-      fetchTasks();
-      return false; // Return failure for the sidebar to handle
+      // Show error toast
+      tasksToasts.taskError("delete", errorMessage);
     }
   };
 
@@ -516,11 +507,8 @@ const TasksPage = () => {
       const errorMessage = handleSupabaseError(err);
       setError(errorMessage);
 
-      showCalendarToast({
-        title: "Error loading tasks",
-        description: errorMessage,
-        type: "error",
-      });
+      // Show error toast
+      tasksToasts.taskError("fetch", errorMessage);
     } finally {
       console.log("Fetch tasks completed, setting isLoading to false");
       setIsLoading(false);

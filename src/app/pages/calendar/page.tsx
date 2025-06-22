@@ -7,6 +7,7 @@ import { Event } from "@/app/schemas/eventSchema";
 import supabase from "@/lib/supabaseClient";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
+import { calendarToasts } from "@/app/components/ui/toast-utils";
 
 const CalendarPage = () => {
   const [events, setEvents] = useState<Event[]>([]);
@@ -149,9 +150,18 @@ const CalendarPage = () => {
       };
 
       setEvents([...events, createdEvent]);
+
+      // Show success toast
+      calendarToasts.eventCreated(newEventData.title);
+
       return data.id; // Return the ID of the created event
     } catch (err) {
       console.error("Error creating event:", err);
+
+      // Show error toast
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      calendarToasts.eventError("create", errorMessage);
+
       if (err instanceof Error) {
         throw new Error(`Error creating event: ${err.message}`);
       } else {
@@ -163,6 +173,29 @@ const CalendarPage = () => {
   // Rest of the functions remain unchanged
   const handleUpdateEvent = async (updatedEvent: Event) => {
     try {
+      // Find the current event to compare changes
+      const currentEvent = events.find((event) => event.id === updatedEvent.id);
+
+      if (!currentEvent) {
+        throw new Error("Event not found");
+      }
+
+      // Check if there are actual changes
+      const hasChanges =
+        currentEvent.title !== updatedEvent.title ||
+        currentEvent.description !== updatedEvent.description ||
+        currentEvent.startTime.getTime() !== updatedEvent.startTime.getTime() ||
+        currentEvent.endTime.getTime() !== updatedEvent.endTime.getTime() ||
+        currentEvent.allDay !== updatedEvent.allDay ||
+        currentEvent.location !== updatedEvent.location ||
+        currentEvent.notes !== updatedEvent.notes ||
+        currentEvent.color !== updatedEvent.color;
+
+      // If no changes, don't update or show toast
+      if (!hasChanges) {
+        return;
+      }
+
       // Convert to database format
       const dbEvent = {
         title: updatedEvent.title,
@@ -187,13 +220,24 @@ const CalendarPage = () => {
           event.id === updatedEvent.id ? updatedEvent : event
         )
       );
+
+      // Show success toast only if there were changes
+      calendarToasts.eventUpdated(updatedEvent.title);
     } catch (err) {
       console.error("Error updating event:", err);
+
+      // Show error toast
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      calendarToasts.eventError("update", errorMessage);
     }
   };
 
   const handleDeleteEvent = async (eventId: string) => {
     try {
+      // Get the event title before deleting for the toast
+      const eventToDelete = events.find((event) => event.id === eventId);
+      const eventTitle = eventToDelete?.title || "Event";
+
       const { error } = await supabase
         .from("events")
         .delete()
@@ -202,8 +246,15 @@ const CalendarPage = () => {
       if (error) throw error;
 
       setEvents(events.filter((event) => event.id !== eventId));
+
+      // Show success toast
+      calendarToasts.eventDeleted(eventTitle);
     } catch (err) {
       console.error("Error deleting event:", err);
+
+      // Show error toast
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      calendarToasts.eventError("delete", errorMessage);
     }
   };
 

@@ -121,10 +121,50 @@ const Calendar = ({
   // Handle form field changes
   const handleFieldChange = (field: string, value: any) => {
     if (editedEvent) {
-      setEditedEvent({
-        ...editedEvent,
-        [field]: value,
-      });
+      if (field === "allDay") {
+        const isAllDay = value;
+        if (isAllDay) {
+          // Set start time to beginning of day (00:00)
+          const startOfDay = new Date(editedEvent.startTime as Date);
+          startOfDay.setHours(0, 0, 0, 0);
+
+          // Set end time to end of day (23:59)
+          const endOfDay = new Date(editedEvent.startTime as Date);
+          endOfDay.setHours(23, 59, 0, 0);
+
+          setEditedEvent({
+            ...editedEvent,
+            allDay: isAllDay,
+            startTime: startOfDay,
+            endTime: endOfDay,
+          });
+        } else {
+          // When turning off all-day, set to current time
+          const currentTime = new Date();
+          const newStartTime = new Date(editedEvent.startTime as Date);
+          newStartTime.setHours(
+            currentTime.getHours(),
+            currentTime.getMinutes(),
+            0,
+            0
+          );
+
+          const newEndTime = new Date(newStartTime);
+          newEndTime.setHours(newStartTime.getHours() + 1);
+
+          setEditedEvent({
+            ...editedEvent,
+            allDay: isAllDay,
+            startTime: newStartTime,
+            endTime: newEndTime,
+          });
+        }
+      } else {
+        setEditedEvent({
+          ...editedEvent,
+          [field]: value,
+        });
+      }
     }
   };
 

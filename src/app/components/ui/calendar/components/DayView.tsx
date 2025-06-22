@@ -8,9 +8,10 @@ import {
   calculateTimePosition,
   formatEventTime,
 } from "./utils/dateUtils";
-import { getEventsForDate } from "./utils/eventUtils";
+import { getTimedEventsForDate } from "./utils/eventUtils";
 import { getEventColorClasses } from "./utils/colorUtils";
 import DaySidebar from "./DaySidebar";
+import AllDayEventsSection from "./AllDayEventsSection";
 
 interface DayViewProps {
   currentDate: Date;
@@ -58,6 +59,14 @@ const DayView = ({
           </div>
         </div>
 
+        {/* All-day events section */}
+        <AllDayEventsSection
+          currentDate={currentDate}
+          events={events}
+          handleEventClick={handleEventClick}
+          createNewEvent={createNewEvent}
+        />
+
         <div className="grid grid-cols-[auto_1fr]">
           {/* Time slots */}
           <div className="border-r w-16 dark:border-gray-700">
@@ -71,7 +80,7 @@ const DayView = ({
             ))}
           </div>
 
-          {/* Day grid with events */}
+          {/* Day grid with timed events */}
           <div className="border-r relative dark:border-gray-700">
             {/* Current time indicator */}
             <div
@@ -96,8 +105,8 @@ const DayView = ({
               ></div>
             ))}
 
-            {/* Events */}
-            {getEventsForDate(events, currentDate).map((event) => {
+            {/* Timed Events */}
+            {getTimedEventsForDate(events, currentDate).map((event) => {
               const startHour = event.startTime.getHours();
               const startMinutes = event.startTime.getMinutes();
               const endHour = event.endTime.getHours();

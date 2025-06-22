@@ -10,8 +10,9 @@ import {
   formatEventTime,
   HEADER_OFFSET,
 } from "./utils/dateUtils";
-import { getEventsForDate } from "./utils/eventUtils";
+import { getTimedEventsForDate } from "./utils/eventUtils";
 import { getEventColorClasses } from "./utils/colorUtils";
+import AllDayEventsSection from "./AllDayEventsSection";
 
 interface WeekViewProps {
   currentDate: Date;
@@ -77,6 +78,16 @@ const WeekView = ({
         })}
       </div>
 
+      {/* All-day events section */}
+      <AllDayEventsSection
+        currentDate={currentDate}
+        events={events}
+        handleEventClick={handleEventClick}
+        createNewEvent={createNewEvent}
+        isWeekView={true}
+        daysOfWeek={daysOfWeek}
+      />
+
       <div className="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_1fr_1fr]">
         {/* Time slots */}
         <div className="border-r w-16 dark:border-gray-700">
@@ -90,9 +101,9 @@ const WeekView = ({
           ))}
         </div>
 
-        {/* Week grid with events */}
+        {/* Week grid with timed events */}
         {daysOfWeek.map((date, dayIndex) => {
-          const dayEvents = getEventsForDate(events, date);
+          const dayEvents = getTimedEventsForDate(events, date);
           const isToday = new Date().toDateString() === date.toDateString();
 
           return (
@@ -118,7 +129,7 @@ const WeekView = ({
                 ></div>
               ))}
 
-              {/* Events */}
+              {/* Timed Events */}
               {dayEvents.map((event) => {
                 const startHour = event.startTime.getHours();
                 const startMinutes = event.startTime.getMinutes();
