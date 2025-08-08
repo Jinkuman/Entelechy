@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { RecurringPattern, CustomRecurring } from "@/app/schemas/eventSchema";
+import { RecurringPattern, CustomRecurring } from "./utils/recurringUtils";
 
 interface RecurringOptionsProps {
   isRecurring: boolean;

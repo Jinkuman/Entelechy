@@ -43,9 +43,9 @@ const WeekView = ({
       transition={{ duration: 0.2 }}
       className="relative"
     >
-      <div className="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_1fr_1fr] border-b dark:border-gray-700">
+      <div className="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr_1fr_1fr] border-b dark:border-zinc-700">
         {/* Empty corner */}
-        <div className="border-r p-2 w-16 dark:border-gray-700"></div>
+        <div className="border-r p-2 w-16 dark:border-zinc-700"></div>
 
         {/* Day headers */}
         {daysOfWeek.map((date, index) => {
@@ -58,13 +58,13 @@ const WeekView = ({
           return (
             <div
               key={index}
-              className={`p-2 text-center border-r cursor-pointer transition-colors dark:border-gray-700 
+              className={`p-2 text-center border-r cursor-pointer transition-colors dark:border-zinc-700 
                 ${
                   isToday
-                    ? "bg-blue-50 dark:bg-blue-900/30"
-                    : "dark:bg-gray-800"
+                    ? "bg-blue-50 dark:bg-zinc-900/50"
+                    : "dark:bg-zinc-800"
                 } 
-                hover:bg-gray-50 dark:hover:bg-gray-700`}
+                hover:bg-gray-50 dark:hover:bg-zinc-700`}
               onClick={() => {
                 setCurrentDate(date);
                 setViewMode("day");
@@ -112,8 +112,8 @@ const WeekView = ({
               className={`border-r relative dark:border-gray-700 
                 ${
                   isToday
-                    ? "bg-blue-50 dark:bg-blue-900/30"
-                    : "dark:bg-gray-800"
+                    ? "bg-blue-50 dark:bg-zinc-900/50"
+                    : "dark:bg-zinc-800"
                 }`}
             >
               {timeSlots.map((_, slotIndex) => (

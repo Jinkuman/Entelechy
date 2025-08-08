@@ -22,11 +22,11 @@ const CalendarHeader = ({
   goToPreviousPeriod,
 }: CalendarHeaderProps) => {
   return (
-    <div className="p-4 border-b dark:border-gray-700 flex items-center justify-between">
+    <div className="p-4 border-b dark:border-zinc-700 flex items-center justify-between">
       <div className="flex items-center gap-2">
         <button
           onClick={goToToday}
-          className="px-4 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors dark:text-gray-200"
+          className="px-4 py-1 bg-gray-100 dark:bg-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-600 rounded transition-colors dark:text-gray-200"
         >
           Today
         </button>
@@ -35,7 +35,7 @@ const CalendarHeader = ({
           <div className="flex items-center gap-4">
             <button
               onClick={goToPreviousPeriod}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors dark:text-gray-300"
+              className="p-1 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded-full transition-colors dark:text-gray-300"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -56,7 +56,7 @@ const CalendarHeader = ({
             </span>
             <button
               onClick={goToNextPeriod}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors dark:text-gray-300"
+              className="p-1 hover:bg-gray-100 dark:hover:bg-zinc-700 rounded-full transition-colors dark:text-gray-300"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -76,12 +76,12 @@ const CalendarHeader = ({
         </div>
       </div>
       <div className="flex gap-2 items-center">
-        <div className="flex border dark:border-gray-600 rounded overflow-hidden">
+        <div className="flex border dark:border-zinc-600 rounded overflow-hidden">
           <button
             className={`px-3 py-1 text-sm dark:text-gray-300 ${
               viewMode === "year"
-                ? "bg-gray-100 dark:bg-gray-700"
-                : "dark:hover:bg-gray-800"
+                ? "bg-gray-100 dark:bg-zinc-700"
+                : "dark:hover:bg-zinc-700"
             }`}
             onClick={() => setViewMode("year")}
           >
@@ -90,8 +90,8 @@ const CalendarHeader = ({
           <button
             className={`px-3 py-1 text-sm dark:text-gray-300 ${
               viewMode === "month"
-                ? "bg-gray-100 dark:bg-gray-700"
-                : "dark:hover:bg-gray-800"
+                ? "bg-gray-100 dark:bg-zinc-700"
+                : "dark:hover:bg-zinc-700"
             }`}
             onClick={() => setViewMode("month")}
           >
@@ -100,8 +100,8 @@ const CalendarHeader = ({
           <button
             className={`px-3 py-1 text-sm dark:text-gray-300 ${
               viewMode === "week"
-                ? "bg-gray-100 dark:bg-gray-700"
-                : "dark:hover:bg-gray-800"
+                ? "bg-gray-100 dark:bg-zinc-700"
+                : "dark:hover:bg-zinc-700"
             }`}
             onClick={() => setViewMode("week")}
           >
@@ -110,8 +110,8 @@ const CalendarHeader = ({
           <button
             className={`px-3 py-1 text-sm dark:text-gray-300 ${
               viewMode === "day"
-                ? "bg-gray-100 dark:bg-gray-700"
-                : "dark:hover:bg-gray-800"
+                ? "bg-gray-100 dark:bg-zinc-700"
+                : "dark:hover:bg-zinc-700"
             }`}
             onClick={() => setViewMode("day")}
           >

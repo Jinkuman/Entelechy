@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { type Note } from "@/app/schemas/notesSchema";
 import { updateNote, fetchUserNotes, toggleStarred } from "../lib/notes-client";
 import { formatDate } from "../lib/utils";
@@ -37,6 +37,47 @@ export function NoteViewer({
   );
   const [isSaving, setIsSaving] = useState(false);
   const [isStarring, setIsStarring] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null); // This will be the backdrop
+  const contentRef = useRef<HTMLDivElement>(null); // This will be the viewer content
+
+  // Click outside autosave functionality
+  useEffect(() => {
+    let mouseDownTarget: EventTarget | null = null;
+
+    const handleMouseDown = (event: MouseEvent) => {
+      mouseDownTarget = event.target;
+    };
+
+    const handleMouseUp = (event: MouseEvent) => {
+      const mouseUpTarget = event.target;
+
+      // Check if both mousedown and mouseup happened outside the content area
+      if (
+        contentRef.current &&
+        mouseDownTarget &&
+        mouseUpTarget &&
+        !contentRef.current.contains(mouseDownTarget as Node) &&
+        !contentRef.current.contains(mouseUpTarget as Node)
+      ) {
+        // If editing, trigger autosave; otherwise just close
+        if (isEditing) {
+          handleSave();
+        } else {
+          handleClose();
+        }
+      }
+
+      mouseDownTarget = null;
+    };
+
+    document.addEventListener("mousedown", handleMouseDown);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousedown", handleMouseDown);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [content, title, tags, note, isEditing]);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -96,16 +137,16 @@ export function NoteViewer({
 
   return (
     <div
+      ref={dialogRef}
       className={`fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-all duration-300 ${
         isClosing ? "animate-fade-out" : "animate-fade-in"
       }`}
-      onClick={handleClose}
     >
       <div
-        className={`bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transition-all duration-300 ${
+        ref={contentRef}
+        className={`bg-white dark:bg-zinc-800 rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transition-all duration-300 ${
           isClosing ? "animate-scale-out-large" : "animate-scale-in-large"
         }`}
-        onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
         tabIndex={-1}
       >
@@ -135,7 +176,7 @@ export function NoteViewer({
               className={`p-2 rounded-lg transition-colors duration-200 ${
                 note.starred
                   ? "bg-yellow-50 text-yellow-600 hover:bg-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-400 dark:hover:bg-yellow-900/30"
-                  : "bg-gray-100 text-gray-400 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600"
+                  : "bg-gray-100 text-gray-400 hover:bg-gray-200 dark:bg-zinc-700 dark:hover:bg-zinc-600"
               } ${isStarring ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {note.starred ? (
@@ -162,7 +203,7 @@ export function NoteViewer({
                     setTitle(note.title || "");
                     setTags(Array.isArray(note.tags) ? note.tags : []);
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200"
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200"
                 >
                   Cancel
                 </button>
@@ -179,7 +220,7 @@ export function NoteViewer({
 
             <button
               onClick={handleClose}
-              className="p-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200"
+              className="p-2 bg-gray-200 dark:bg-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200"
             >
               <XMarkIcon className="h-5 w-5" />
             </button>
@@ -199,7 +240,7 @@ export function NoteViewer({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter note title..."
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all duration-200"
+                className="w-full p-3 border border-gray-300 dark:border-zinc-600 rounded-lg bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all duration-200"
               />
             </div>
           )}
@@ -240,7 +281,7 @@ export function NoteViewer({
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Write your note..."
-                className="w-full h-full min-h-[400px] p-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent resize-none transition-all duration-200"
+                className="w-full h-full min-h-[400px] p-4 border border-gray-300 dark:border-zinc-600 rounded-lg bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent resize-none transition-all duration-200"
                 autoFocus
               />
             ) : (
@@ -254,11 +295,12 @@ export function NoteViewer({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+        <div className="p-6 border-t border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900/50">
           <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
             <div className="flex items-center gap-4">
               <span>Created: {formatDate(note.created_at)}</span>
               <span>Updated: {formatDate(note.updated_at)}</span>
+              {isEditing && <span>• Click outside to autosave</span>}
             </div>
             <div className="flex items-center gap-4">
               <span>{content.length} characters</span>

@@ -64,7 +64,7 @@ const KanbanView = ({
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className="bg-gray-50 dark:bg-gray-900/50 min-h-[24rem] rounded p-2"
+                    className="bg-gray-50 dark:bg-zinc-900/50 min-h-[24rem] rounded p-2"
                   >
                     <AnimatePresence>
                       {tasksByStatus[statusKey].map((task, index) => (
@@ -84,7 +84,7 @@ const KanbanView = ({
                                   ? provided.draggableProps.style?.transform
                                   : "none", // Prevent transform conflicts
                               }}
-                              className={`bg-white dark:bg-gray-800 p-4 rounded mb-2 border dark:border-gray-700 hover:shadow-md transition-shadow duration-200 ${
+                              className={`bg-white dark:bg-zinc-800 p-4 rounded mb-2 border dark:border-zinc-700 hover:shadow-md transition-shadow duration-200 ${
                                 !snapshot.isDragging ? "cursor-pointer" : ""
                               }`}
                               onClick={() => {

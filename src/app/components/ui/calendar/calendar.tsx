@@ -255,7 +255,7 @@ const Calendar = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 border dark:border-gray-700 rounded-lg shadow-sm">
+    <div className="bg-white dark:bg-zinc-800 border dark:border-zinc-700 rounded-lg shadow-sm">
       <CalendarHeader
         viewMode={viewMode}
         setViewMode={setViewMode}

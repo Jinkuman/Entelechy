@@ -53,6 +53,9 @@ const CreateEventSidebar = ({
     location: "",
     notes: "",
     color: "blue",
+    is_recurring: false,
+    custom_recurring: null,
+    recurring_pattern: null,
   });
 
   // Reset form when sidebar is opened
@@ -67,6 +70,9 @@ const CreateEventSidebar = ({
         location: "",
         notes: "",
         color: "blue",
+        is_recurring: false,
+        custom_recurring: null,
+        recurring_pattern: null,
       });
       setError(null);
       setIsSubmitting(false);
@@ -267,7 +273,7 @@ const CreateEventSidebar = ({
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed top-0 right-0 h-full w-1/3 bg-white dark:bg-gray-800 shadow-xl border-l dark:border-gray-700 p-6 z-40 flex flex-col"
+        className="fixed top-0 right-0 h-full w-1/3 bg-white dark:bg-zinc-800 shadow-xl border-l dark:border-zinc-700 p-6 z-40 flex flex-col"
         initial={{ x: "100%" }}
         animate={
           isClosing
@@ -330,7 +336,7 @@ const CreateEventSidebar = ({
               </label>
               <input
                 type="text"
-                className="w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                 placeholder="Enter event title"
                 value={newEvent.title}
                 onChange={(e) => handleFieldChange("title", e.target.value)}
@@ -344,7 +350,7 @@ const CreateEventSidebar = ({
                 Description
               </label>
               <textarea
-                className="w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                 rows={3}
                 placeholder="Add description"
                 value={newEvent.description}
@@ -359,7 +365,7 @@ const CreateEventSidebar = ({
               <input
                 type="checkbox"
                 id="allDay"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded dark:border-gray-600 dark:bg-gray-700"
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-zinc-600 rounded dark:bg-zinc-900"
                 checked={newEvent.allDay}
                 onChange={(e) => handleFieldChange("allDay", e.target.checked)}
               />
@@ -379,7 +385,7 @@ const CreateEventSidebar = ({
                 </label>
                 <input
                   type="date"
-                  className="w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white"
                   value={formatDateForInput(newEvent.startTime)}
                   onChange={(e) =>
                     handleDateTimeChange("startTime", "date", e.target.value)
@@ -392,10 +398,8 @@ const CreateEventSidebar = ({
                 </label>
                 <input
                   type="time"
-                  className={`w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${
-                    newEvent.allDay
-                      ? "bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                      : ""
+                  className={`w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white ${
+                    newEvent.allDay ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                   value={formatTimeForInput(newEvent.startTime)}
                   onChange={(e) =>
@@ -413,7 +417,7 @@ const CreateEventSidebar = ({
                 </label>
                 <input
                   type="date"
-                  className="w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white"
                   value={formatDateForInput(newEvent.endTime)}
                   onChange={(e) =>
                     handleDateTimeChange("endTime", "date", e.target.value)
@@ -426,10 +430,8 @@ const CreateEventSidebar = ({
                 </label>
                 <input
                   type="time"
-                  className={`w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${
-                    newEvent.allDay
-                      ? "bg-gray-100 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
-                      : ""
+                  className={`w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white ${
+                    newEvent.allDay ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                   value={formatTimeForInput(newEvent.endTime)}
                   onChange={(e) =>
@@ -447,7 +449,7 @@ const CreateEventSidebar = ({
               </label>
               <input
                 type="text"
-                className="w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                 placeholder="Add location"
                 value={newEvent.location || ""}
                 onChange={(e) => handleFieldChange("location", e.target.value)}
@@ -460,7 +462,7 @@ const CreateEventSidebar = ({
                 Notes
               </label>
               <textarea
-                className="w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                 rows={2}
                 placeholder="Add notes"
                 value={newEvent.notes || ""}
@@ -513,7 +515,7 @@ const CreateEventSidebar = ({
             <motion.button
               type="button"
               onClick={() => setShowSidebar(false)}
-              className="px-4 py-2 border dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+              className="px-4 py-2 border border-gray-300 dark:border-zinc-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700 bg-white dark:bg-zinc-800"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >

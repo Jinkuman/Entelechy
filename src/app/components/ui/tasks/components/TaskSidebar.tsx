@@ -55,7 +55,7 @@ const AddTaskSidebar = ({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="fixed top-0 right-0 h-full w-1/3 bg-white dark:bg-gray-800 shadow-xl border-l dark:border-gray-700 p-6 z-40 flex flex-col"
+            className="fixed top-0 right-0 h-full w-1/3 bg-white dark:bg-zinc-800 shadow-xl border-l dark:border-zinc-700 p-6 z-40 flex flex-col"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
@@ -97,7 +97,7 @@ const AddTaskSidebar = ({
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   placeholder="Enter task title"
                 />
               </div>
@@ -110,7 +110,7 @@ const AddTaskSidebar = ({
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as TaskStatus)}
-                  className="w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white"
                 >
                   <option value="uncompleted">Uncompleted</option>
                   <option value="in_progress">In Progress</option>
@@ -128,7 +128,7 @@ const AddTaskSidebar = ({
                     className={`flex-1 py-2 border rounded-md ${
                       importance === "low"
                         ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                        : "bg-white dark:bg-gray-700 dark:text-white"
+                        : "bg-white dark:bg-zinc-800 dark:text-white border-gray-300 dark:border-zinc-600"
                     }`}
                     onClick={() => setImportance("low")}
                     whileHover={{ scale: 1.05 }}
@@ -140,7 +140,7 @@ const AddTaskSidebar = ({
                     className={`flex-1 py-2 border rounded-md ${
                       importance === "medium"
                         ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
-                        : "bg-white dark:bg-gray-700 dark:text-white"
+                        : "bg-white dark:bg-zinc-800 dark:text-white border-gray-300 dark:border-zinc-600"
                     }`}
                     onClick={() => setImportance("medium")}
                     whileHover={{ scale: 1.05 }}
@@ -152,7 +152,7 @@ const AddTaskSidebar = ({
                     className={`flex-1 py-2 border rounded-md ${
                       importance === "high"
                         ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-                        : "bg-white dark:bg-gray-700 dark:text-white"
+                        : "bg-white dark:bg-zinc-800 dark:text-white border-gray-300 dark:border-zinc-600"
                     }`}
                     onClick={() => setImportance("high")}
                     whileHover={{ scale: 1.05 }}
@@ -170,13 +170,13 @@ const AddTaskSidebar = ({
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Tag size={16} className="text-gray-400" />
+                    <Tag size={16} className="text-gray-400 dark:text-white" />
                   </div>
                   <input
                     type="text"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full pl-10 px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full pl-10 px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                     placeholder="Enter category"
                   />
                 </div>
@@ -189,13 +189,16 @@ const AddTaskSidebar = ({
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Calendar size={16} className="text-gray-400" />
+                    <Calendar
+                      size={16}
+                      className="text-gray-400 dark:text-white"
+                    />
                   </div>
                   <input
                     type="date"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full pl-10 px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full pl-10 px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   />
                 </div>
               </div>
@@ -208,7 +211,7 @@ const AddTaskSidebar = ({
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3 py-2 border dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                   rows={4}
                   placeholder="Add task description"
                 ></textarea>

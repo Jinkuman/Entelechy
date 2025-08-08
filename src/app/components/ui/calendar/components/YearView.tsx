@@ -51,10 +51,10 @@ const YearView = ({
               }}
               whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
             >
-              <div className="bg-gray-50 dark:bg-gray-800 p-2 border-b dark:border-gray-700 text-center font-medium dark:text-white">
+              <div className="bg-gray-50 dark:bg-zinc-900/50 p-2 border-b dark:border-zinc-700 text-center font-medium dark:text-white">
                 {monthName}
               </div>
-              <div className="p-2 dark:bg-gray-900">
+              <div className="p-2 dark:bg-zinc-900/50">
                 <div className="grid grid-cols-7 gap-1 text-xs text-center">
                   {["S", "M", "T", "W", "T", "F", "S"].map((day, i) => (
                     <div key={i} className="text-gray-500 dark:text-gray-400">

@@ -1,8 +1,21 @@
-import {
-  Event,
-  RecurringPattern,
-  CustomRecurring,
-} from "@/app/schemas/eventSchema";
+import { Event } from "@/app/schemas/eventSchema";
+
+// Define types for recurring patterns
+export type RecurringPattern =
+  | "none"
+  | "daily"
+  | "weekly"
+  | "monthly"
+  | "yearly"
+  | "custom";
+
+export interface CustomRecurring {
+  interval: number;
+  unit: "days" | "weeks" | "months" | "years";
+  selectedDays?: number[];
+  endDate?: Date;
+  endAfterOccurrences?: number;
+}
 
 // Generate recurring event instances for a given date range
 export const generateRecurringInstances = (
@@ -10,7 +23,10 @@ export const generateRecurringInstances = (
   startDate: Date,
   endDate: Date
 ): Event[] => {
-  if (!originalEvent.isRecurring || originalEvent.recurringPattern === "none") {
+  if (
+    !originalEvent.is_recurring ||
+    originalEvent.recurring_pattern === "none"
+  ) {
     return [originalEvent];
   }
 
@@ -21,14 +37,19 @@ export const generateRecurringInstances = (
 
   let currentDate = new Date(eventStart);
   let occurrenceCount = 0;
-  const maxOccurrences =
-    originalEvent.customRecurring?.endAfterOccurrences || 100; // Default limit
+
+  // Parse custom_recurring JSON string
+  const customRecurring = originalEvent.custom_recurring
+    ? (JSON.parse(originalEvent.custom_recurring) as CustomRecurring)
+    : undefined;
+
+  const maxOccurrences = customRecurring?.endAfterOccurrences || 100; // Default limit
 
   // For custom recurring with selected days, we need to handle it differently
   if (
-    originalEvent.recurringPattern === "custom" &&
-    originalEvent.customRecurring?.selectedDays &&
-    originalEvent.customRecurring.selectedDays.length > 0
+    originalEvent.recurring_pattern === "custom" &&
+    customRecurring?.selectedDays &&
+    customRecurring.selectedDays.length > 0
   ) {
     // Generate instances for custom recurring with selected days
     return generateCustomRecurringInstances(originalEvent, startDate, endDate);
@@ -37,8 +58,8 @@ export const generateRecurringInstances = (
   while (
     currentDate <= endDate &&
     occurrenceCount < maxOccurrences &&
-    (!originalEvent.customRecurring?.endDate ||
-      currentDate <= originalEvent.customRecurring.endDate)
+    (!customRecurring?.endDate ||
+      currentDate <= new Date(customRecurring.endDate))
   ) {
     // Only include instances that fall within our view range
     if (currentDate >= startDate) {
@@ -50,7 +71,6 @@ export const generateRecurringInstances = (
         id: `${originalEvent.id}_${occurrenceCount}`, // Temporary ID for display
         startTime: instanceStart,
         endTime: instanceEnd,
-        originalEventId: originalEvent.id,
       };
 
       instances.push(instance);
@@ -59,8 +79,8 @@ export const generateRecurringInstances = (
     // Calculate next occurrence
     currentDate = getNextOccurrence(
       currentDate,
-      originalEvent.recurringPattern,
-      originalEvent.customRecurring
+      originalEvent.recurring_pattern as RecurringPattern,
+      customRecurring
     );
     occurrenceCount++;
   }
@@ -79,8 +99,13 @@ const generateCustomRecurringInstances = (
   const eventEnd = new Date(originalEvent.endTime);
   const duration = eventEnd.getTime() - eventStart.getTime();
 
-  const customRecurring = originalEvent.customRecurring!;
-  const selectedDays = customRecurring.selectedDays!;
+  const customRecurring = originalEvent.custom_recurring
+    ? (JSON.parse(originalEvent.custom_recurring) as CustomRecurring)
+    : undefined;
+
+  if (!customRecurring?.selectedDays) return instances;
+
+  const selectedDays = customRecurring.selectedDays;
   const interval = customRecurring.interval;
   const maxOccurrences = customRecurring.endAfterOccurrences || 100;
 
@@ -92,7 +117,8 @@ const generateCustomRecurringInstances = (
   while (
     currentDate <= endDate &&
     occurrenceCount < maxOccurrences &&
-    (!customRecurring.endDate || currentDate <= customRecurring.endDate)
+    (!customRecurring.endDate ||
+      currentDate <= new Date(customRecurring.endDate))
   ) {
     // Check if current date falls on a selected day
     const currentDayOfWeek = currentDate.getDay();
@@ -108,7 +134,6 @@ const generateCustomRecurringInstances = (
           id: `${originalEvent.id}_${occurrenceCount}`,
           startTime: instanceStart,
           endTime: instanceEnd,
-          originalEventId: originalEvent.id,
         };
 
         instances.push(instance);
@@ -210,7 +235,9 @@ const getNextCustomOccurrence = (
   const currentDayOfWeek = currentDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
 
   // Find the next selected day in the current week
-  const nextDayInWeek = selectedDays.find((day) => day > currentDayOfWeek);
+  const nextDayInWeek = selectedDays.find(
+    (day: number) => day > currentDayOfWeek
+  );
 
   if (nextDayInWeek !== undefined) {
     // Next occurrence is in the same week
@@ -241,7 +268,7 @@ export const getEventsWithRecurring = (
   const allEvents: Event[] = [];
 
   events.forEach((event) => {
-    if (event.isRecurring && event.recurringPattern !== "none") {
+    if (event.is_recurring && event.recurring_pattern !== "none") {
       // Generate recurring instances for this event
       const instances = generateRecurringInstances(event, startDate, endDate);
       allEvents.push(...instances);
@@ -280,7 +307,7 @@ export const formatRecurringPattern = (
         ) {
           const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
           const selectedDayNames = customRecurring.selectedDays
-            .map((day) => dayNames[day])
+            .map((day: number) => dayNames[day])
             .join(", ");
 
           if (interval === 1) {
@@ -300,12 +327,12 @@ export const formatRecurringPattern = (
 
 // Check if an event is a recurring instance
 export const isRecurringInstance = (event: Event): boolean => {
-  return event.originalEventId !== null;
+  return event.id.includes("_"); // Check if ID contains underscore indicating it's an instance
 };
 
 // Check if an event should show recurring indicator (original recurring event or recurring instance)
 export const shouldShowRecurringIndicator = (event: Event): boolean => {
-  return event.isRecurring && event.recurringPattern !== "none";
+  return event.is_recurring && event.recurring_pattern !== "none";
 };
 
 // Get the original event from a recurring instance
@@ -316,5 +343,6 @@ export const getOriginalEvent = (
   if (!isRecurringInstance(event)) {
     return null;
   }
-  return allEvents.find((e) => e.id === event.originalEventId) || null;
+  const originalId = event.id.split("_")[0]; // Extract original ID
+  return allEvents.find((e) => e.id === originalId) || null;
 };

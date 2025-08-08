@@ -30,6 +30,47 @@ export function NoteEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null); // This will be the backdrop
+  const contentRef = useRef<HTMLDivElement>(null); // This will be the editor content
+
+  // Click outside autosave functionality
+  useEffect(() => {
+    let mouseDownTarget: EventTarget | null = null;
+
+    const handleMouseDown = (event: MouseEvent) => {
+      mouseDownTarget = event.target;
+    };
+
+    const handleMouseUp = (event: MouseEvent) => {
+      const mouseUpTarget = event.target;
+
+      // Check if both mousedown and mouseup happened outside the content area
+      if (
+        contentRef.current &&
+        mouseDownTarget &&
+        mouseUpTarget &&
+        !contentRef.current.contains(mouseDownTarget as Node) &&
+        !contentRef.current.contains(mouseUpTarget as Node)
+      ) {
+        // Trigger autosave if there's content
+        if (content.trim()) {
+          handleSave();
+        } else {
+          handleClose();
+        }
+      }
+
+      mouseDownTarget = null;
+    };
+
+    document.addEventListener("mousedown", handleMouseDown);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousedown", handleMouseDown);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [content, title, tags, note]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -93,69 +134,77 @@ export function NoteEditor({
 
   return (
     <div
-      className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-lg transition-all duration-200 ${
-        isClosing ? "animate-scale-out" : "animate-scale-in"
-      }`}
-      style={{
-        animationDelay: `${index * 50}ms`,
-        animationFillMode: "both",
-      }}
+      ref={editorRef}
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
     >
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-medium text-gray-900 dark:text-white">
-          {note ? "Edit Note" : "New Note"}
-        </h3>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleSave}
-            disabled={isSaving || !content.trim()}
-            className="p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
-          >
-            <CheckIcon className="h-4 w-4" />
-          </button>
-          <button
-            onClick={handleClose}
-            className="p-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200"
-          >
-            <XMarkIcon className="h-4 w-4" />
-          </button>
+      <div
+        ref={contentRef}
+        className={`bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700 p-6 shadow-lg transition-all duration-200 w-full max-w-2xl ${
+          isClosing ? "animate-scale-out" : "animate-scale-in"
+        }`}
+        style={{
+          animationDelay: `${index * 50}ms`,
+          animationFillMode: "both",
+        }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-medium text-gray-900 dark:text-white">
+            {note ? "Edit Note" : "New Note"}
+          </h3>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSave}
+              disabled={isSaving || !content.trim()}
+              className="p-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
+            >
+              <CheckIcon className="h-4 w-4" />
+            </button>
+            <button
+              onClick={handleClose}
+              className="p-2 bg-gray-200 dark:bg-zinc-700 hover:bg-gray-300 dark:hover:bg-zinc-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200"
+            >
+              <XMarkIcon className="h-4 w-4" />
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Title Section */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Title
-        </label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Enter note title..."
-          className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all duration-200"
+        {/* Title Section */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Title
+          </label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Enter note title..."
+            className="w-full p-3 border border-gray-300 dark:border-zinc-600 rounded-lg bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all duration-200"
+          />
+        </div>
+
+        {/* Tags Section */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Tags
+          </label>
+          <TagInput tags={tags} onChange={setTags} placeholder="Add tags..." />
+        </div>
+
+        <textarea
+          ref={textareaRef}
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Start writing your note..."
+          className="w-full h-32 p-3 border border-gray-300 dark:border-zinc-600 rounded-lg bg-gray-50 dark:bg-zinc-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent resize-none transition-all duration-200"
         />
-      </div>
 
-      {/* Tags Section */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Tags
-        </label>
-        <TagInput tags={tags} onChange={setTags} placeholder="Add tags..." />
-      </div>
-
-      <textarea
-        ref={textareaRef}
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Start writing your note..."
-        className="w-full h-32 p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent resize-none transition-all duration-200"
-      />
-
-      <div className="flex items-center justify-between mt-4 text-xs text-gray-500 dark:text-gray-400">
-        <span>Press Cmd+Enter to save, Esc to cancel</span>
-        <span>{content.length} characters</span>
+        <div className="flex items-center justify-between mt-4 text-xs text-gray-500 dark:text-gray-400">
+          <span>
+            Press Cmd+Enter to save, Esc to cancel • Click outside to autosave
+          </span>
+          <span>{content.length} characters</span>
+        </div>
       </div>
     </div>
   );

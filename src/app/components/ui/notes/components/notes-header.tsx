@@ -2,17 +2,23 @@ import { type NotesStats } from "../lib/types";
 import { type Note } from "@/app/schemas/notesSchema";
 import { CreateNoteButton } from "./create-note-button";
 import { StarIcon } from "@heroicons/react/24/solid";
+import { motion } from "framer-motion";
+import { Plus } from "lucide-react";
 
 interface NotesHeaderProps {
   stats: NotesStats;
   userId: string;
   onNotesChange: (notes: Note[]) => void;
+  openCreateNote?: boolean;
+  setOpenCreateNote?: (open: boolean) => void;
 }
 
 export function NotesHeader({
   stats,
   userId,
   onNotesChange,
+  openCreateNote = false,
+  setOpenCreateNote,
 }: NotesHeaderProps) {
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -65,7 +71,16 @@ export function NotesHeader({
           </div>
         </div>
 
-        <CreateNoteButton userId={userId} onNotesChange={onNotesChange} />
+        {/* Floating Plus Button in Header */}
+        <motion.button
+          className="cursor-pointer rounded-full p-3 bg-blue-600 text-white shadow-lg"
+          onClick={() => setOpenCreateNote && setOpenCreateNote(true)}
+          whileHover={{ scale: 1.1, rotate: 90 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Plus size={24} />
+        </motion.button>
       </div>
     </div>
   );

@@ -35,7 +35,7 @@ export function TagFilter({
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+        className="flex items-center gap-2 px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-700 transition-colors duration-200"
       >
         <FunnelIcon className="h-4 w-4" />
         <span>Filter by tags</span>
@@ -52,7 +52,7 @@ export function TagFilter({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10 animate-scale-in">
+        <div className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg shadow-lg z-10 animate-scale-in">
           <div className="p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-medium text-gray-900 dark:text-white">

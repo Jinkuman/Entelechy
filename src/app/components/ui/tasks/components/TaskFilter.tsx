@@ -128,7 +128,7 @@ const TaskFilter = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed top-0 right-0 h-full w-1/3 bg-white dark:bg-gray-800 shadow-xl border-l dark:border-gray-700 p-6 z-40 flex flex-col"
+          className="fixed top-0 right-0 h-full w-1/3 bg-white dark:bg-zinc-800 shadow-xl border-l dark:border-zinc-700 p-6 z-40 flex flex-col"
           initial={{ x: "100%" }}
           animate={{ x: 0 }}
           exit={{ x: "100%" }}

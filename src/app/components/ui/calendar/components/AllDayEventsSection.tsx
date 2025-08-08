@@ -61,14 +61,14 @@ const AllDayEventsSection = ({
           return (
             <div
               key={dayIndex}
-              className={`border-r p-2 min-h-[60px] dark:border-gray-700 
+              className={`border-r p-2 min-h-[60px] dark:border-zinc-700 
                 ${
                   isToday
                     ? "bg-blue-50 dark:bg-blue-900/30"
-                    : "bg-gray-50 dark:bg-gray-900"
+                    : "bg-gray-50 dark:bg-zinc-800"
                 }
                 ${isWeekView ? "" : "cursor-pointer"}
-                hover:bg-gray-100 dark:hover:bg-gray-800`}
+                hover:bg-gray-100 dark:hover:bg-zinc-700`}
               onClick={() => {
                 if (!isWeekView) {
                   createNewEvent(date);

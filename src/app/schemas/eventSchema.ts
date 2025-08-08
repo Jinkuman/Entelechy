@@ -14,6 +14,9 @@ export const eventSchema = z.object({
   color: z.string().default("blue"),
   created_at: z.date(),
   updated_at: z.date(),
+  is_recurring: z.boolean().default(false),
+  custom_recurring: z.string().nullable().default(null),
+  recurring_pattern: z.string().nullable().default(null),
 });
 
 export type Event = z.infer<typeof eventSchema>;

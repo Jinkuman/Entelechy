@@ -40,7 +40,7 @@ const MonthView = ({
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day, index) => (
           <div
             key={index}
-            className="bg-gray-50 dark:bg-gray-800 p-2 text-center font-medium text-gray-500 dark:text-gray-400"
+            className="bg-gray-50 dark:bg-zinc-800 p-2 text-center font-medium text-gray-500 dark:text-gray-400"
           >
             {day}
           </div>
@@ -55,11 +55,11 @@ const MonthView = ({
           return (
             <div
               key={index}
-              className={`bg-white dark:bg-gray-900 min-h-24 p-1 border-t dark:border-gray-700 ${
+              className={`bg-white dark:bg-zinc-800 min-h-24 p-1 border-t dark:border-zinc-700 ${
                 !dayObj.isCurrentMonth
                   ? "text-gray-400 dark:text-gray-600"
                   : "dark:text-gray-300"
-              } hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors`}
+              } hover:bg-gray-50 dark:hover:bg-zinc-700 cursor-pointer transition-colors`}
               onClick={() => {
                 setCurrentDate(dayObj.date);
                 setViewMode("day");

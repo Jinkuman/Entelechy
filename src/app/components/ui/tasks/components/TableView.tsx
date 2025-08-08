@@ -86,7 +86,7 @@ const TableView = ({
       <div className="overflow-x-auto p-4">
         <table className="min-w-full">
           <thead>
-            <tr className="bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700">
+            <tr className="bg-gray-50 dark:bg-transparent border-b dark:border-gray-700">
               <th className="py-3 px-4 text-left font-medium text-gray-600 dark:text-gray-300 w-12">
                 Status
               </th>

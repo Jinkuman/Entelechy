@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import { motion } from "framer-motion";
+import { Plus } from "lucide-react";
 import supabase from "@/lib/supabaseClient";
 import { type NotesStats } from "@/app/components/ui/notes/lib/types";
 import { type Note } from "@/app/schemas/notesSchema";
@@ -15,10 +18,12 @@ import { NotesGrid } from "@/app/components/ui/notes/components/notes-grid";
 import { SearchBar } from "@/app/components/ui/notes/components/search-bar";
 import { TagFilter } from "@/app/components/ui/notes/components/tag-filter";
 import { LoadingSpinner } from "@/app/components/ui/notes/components/loading-spinner";
+import { CreateNoteButton } from "@/app/components/ui/notes/components/create-note-button";
 import { StarIcon } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 
 export default function NotesPage() {
+  const searchParams = useSearchParams();
   const [notes, setNotes] = useState<Note[]>([]);
   const [stats, setStats] = useState<NotesStats>({
     total: 0,
@@ -33,6 +38,15 @@ export default function NotesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showStarredOnly, setShowStarredOnly] = useState(false);
+  const [openCreateNote, setOpenCreateNote] = useState(false);
+
+  // Check for URL parameters to open create note dialog
+  useEffect(() => {
+    const openParam = searchParams.get("open");
+    if (openParam === "create-note") {
+      setOpenCreateNote(true);
+    }
+  }, [searchParams]);
 
   // Fetch user and their notes
   useEffect(() => {
@@ -116,7 +130,7 @@ export default function NotesPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-zinc-800 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-600 dark:text-red-400 text-lg font-medium">
             {error}
@@ -142,6 +156,8 @@ export default function NotesPage() {
             setNotes(newNotes);
             setStats(calculateNotesStats(newNotes));
           }}
+          openCreateNote={openCreateNote}
+          setOpenCreateNote={setOpenCreateNote}
         />
 
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
@@ -160,8 +176,8 @@ export default function NotesPage() {
               onClick={() => setShowStarredOnly(!showStarredOnly)}
               className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors duration-200 ${
                 showStarredOnly
-                  ? "bg-yellow-50 border-yellow-200 text-yellow-700 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-400"
-                  : "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  ? "bg-yellow-50 border-yellow-200 text-yellow-700 dark:bg-zinc-800 dark:border-yellow-800 dark:text-yellow-400"
+                  : "bg-white dark:bg-zinc-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
               {showStarredOnly ? (
@@ -190,6 +206,19 @@ export default function NotesPage() {
           }}
         />
       </div>
+
+      {/* CreateNoteButton Component - renders when needed */}
+      {openCreateNote && (
+        <CreateNoteButton
+          userId={userId}
+          onNotesChange={(newNotes) => {
+            setNotes(newNotes);
+            setStats(calculateNotesStats(newNotes));
+          }}
+          openCreateNote={openCreateNote}
+          setOpenCreateNote={setOpenCreateNote}
+        />
+      )}
     </div>
   );
 }

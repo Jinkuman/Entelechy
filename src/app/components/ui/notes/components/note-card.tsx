@@ -117,7 +117,7 @@ export function NoteCard({
   return (
     <>
       <div
-        className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-all duration-200 cursor-pointer animate-scale-in ${
+        className={`bg-white dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-zinc-700 p-4 hover:shadow-md transition-all duration-200 cursor-pointer animate-scale-in ${
           isDeleting ? "opacity-50 pointer-events-none" : ""
         }`}
         style={{
@@ -180,21 +180,21 @@ export function NoteCard({
                       setShowDropdown(false);
                     }}
                   />
-                  <div className="absolute right-0 top-full mt-1 w-32 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 z-20">
+                  <div className="absolute right-0 top-full mt-1 w-32 bg-white dark:bg-zinc-700 rounded-lg shadow-lg border border-gray-200 dark:border-zinc-600 z-20">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowDropdown(false);
                         setShowViewer(true);
                       }}
-                      className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-t-lg flex items-center gap-2"
+                      className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-600 rounded-t-lg flex items-center gap-2"
                     >
                       <EyeIcon className="h-4 w-4" />
                       View
                     </button>
                     <button
                       onClick={handleEdit}
-                      className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 flex items-center gap-2"
+                      className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-600 flex items-center gap-2"
                     >
                       <PencilIcon className="h-4 w-4" />
                       Edit
@@ -255,17 +255,13 @@ export function NoteCard({
       )}
 
       {showEditor && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="w-full max-w-2xl">
-            <NoteEditor
-              note={note}
-              userId={userId}
-              onClose={() => setShowEditor(false)}
-              onNotesChange={onNotesChange}
-              index={0}
-            />
-          </div>
-        </div>
+        <NoteEditor
+          note={note}
+          userId={userId}
+          onClose={() => setShowEditor(false)}
+          onNotesChange={onNotesChange}
+          index={0}
+        />
       )}
     </>
   );

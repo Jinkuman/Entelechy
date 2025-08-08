@@ -29,6 +29,9 @@ export const fetchUserEvents = async (userId: number): Promise<Event[]> => {
     color: event.color,
     created_at: new Date(event.created_at),
     updated_at: new Date(event.updated_at),
+    is_recurring: event.is_recurring,
+    custom_recurring: event.custom_recurring,
+    recurring_pattern: event.recurring_pattern,
   }));
 };
 
@@ -75,6 +78,9 @@ export const createEvent = async (
     color: data.color,
     created_at: new Date(data.created_at),
     updated_at: new Date(data.updated_at),
+    is_recurring: data.is_recurring,
+    custom_recurring: data.custom_recurring,
+    recurring_pattern: data.recurring_pattern,
   };
 };
 
@@ -118,6 +124,9 @@ export const updateEvent = async (event: Event): Promise<Event> => {
     color: data.color,
     created_at: new Date(data.created_at),
     updated_at: new Date(data.updated_at),
+    is_recurring: data.is_recurring,
+    custom_recurring: data.custom_recurring,
+    recurring_pattern: data.recurring_pattern,
   };
 };
 

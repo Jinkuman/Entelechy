@@ -1,9 +1,18 @@
-// pages/tasks/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Filter } from "lucide-react";
+import {
+  Plus,
+  Filter,
+  Search,
+  Calendar,
+  Clock,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+} from "lucide-react";
 import KanbanView from "../../components/ui/tasks/components/KanbanView";
 import TableView from "../../components/ui/tasks/components/TableView";
 import AddTaskSidebar from "../../components/ui/tasks/components/TaskSidebar";
@@ -15,30 +24,30 @@ import type { z } from "zod";
 import { FilterOptions } from "@/app/components/ui/tasks/components/TaskFilter";
 import TaskFilter from "@/app/components/ui/tasks/components/TaskFilter";
 import { useMemo } from "react";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
 
 // Add a utility function for error handling
 const handleSupabaseError = (error: any): string => {
   console.error("Supabase error:", error);
 
-  // Check if it's a Supabase error object
   if (error?.code && error?.message) {
-    // Handle specific error codes
     switch (error.code) {
-      case "23505": // Unique violation
+      case "23505":
         return "A task with this information already exists.";
-      case "23503": // Foreign key violation
+      case "23503":
         return "Referenced record doesn't exist.";
-      case "23502": // Not null violation
+      case "23502":
         const column =
           error.message.match(/column "([^"]+)"/)?.[1] || "A required field";
         return `${column} cannot be empty.`;
-      case "42P01": // Undefined table
+      case "42P01":
         return "Database configuration error: Table not found.";
-      case "42703": // Undefined column
+      case "42703":
         return "Database configuration error: Column not found.";
-      case "PGRST116": // Row level security violation
+      case "PGRST116":
         return "You don't have permission to perform this action.";
-      case "P0001": // Raised exception
+      case "P0001":
         return error.message || "Database constraint violation.";
       default:
         if (error.message) {
@@ -48,28 +57,25 @@ const handleSupabaseError = (error: any): string => {
     }
   }
 
-  // Handle network errors
   if (error instanceof TypeError && error.message.includes("fetch")) {
     return "Network error: Unable to connect to the database.";
   }
 
-  // Handle authentication errors
   if (error?.message?.includes("auth")) {
     return "Authentication error: Please sign in again.";
   }
 
-  // Handle validation errors
   if (error?.name === "ValidationError" || error?.name === "ZodError") {
     return `Validation error: ${error.message}`;
   }
 
-  // Generic error fallback
   return error?.message || "An unexpected error occurred.";
 };
 
 type Task = z.infer<typeof taskSchema>;
 
 const TasksPage = () => {
+  const searchParams = useSearchParams();
   const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban");
   const [addSidebarOpen, setAddSidebarOpen] = useState(false);
   const [editSidebarOpen, setEditSidebarOpen] = useState(false);
@@ -78,6 +84,15 @@ const TasksPage = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [quickSearch, setQuickSearch] = useState("");
+
+  // Check for URL parameters to open sidebar
+  useEffect(() => {
+    const openParam = searchParams.get("open");
+    if (openParam === "add-task") {
+      setAddSidebarOpen(true);
+    }
+  }, [searchParams]);
 
   // Filter state
   const [filters, setFilters] = useState<FilterOptions>({
@@ -86,12 +101,15 @@ const TasksPage = () => {
     status: [],
   });
 
-  // Filter tasks based on current filters
+  // Combine quick search with filters
+  const combinedSearch = quickSearch || filters.search;
+
+  // Filter tasks based on current filters and quick search
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
-      // Search filter
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
+      // Search filter (quick search takes priority)
+      if (combinedSearch) {
+        const searchLower = combinedSearch.toLowerCase();
         const matchesSearch =
           task.title.toLowerCase().includes(searchLower) ||
           (task.description &&
@@ -111,7 +129,7 @@ const TasksPage = () => {
 
       return true;
     });
-  }, [tasks, filters]);
+  }, [tasks, filters, combinedSearch]);
 
   // Group filtered tasks by status for Kanban view
   const tasksByStatus: Record<string, Task[]> = {
@@ -122,9 +140,24 @@ const TasksPage = () => {
 
   // Check if any filters are active
   const hasActiveFilters =
-    filters.search ||
+    combinedSearch ||
     filters.importance.length > 0 ||
     filters.status.length > 0;
+
+  // Task statistics
+  const taskStats = useMemo(() => {
+    const total = tasks.length;
+    const completed = tasks.filter((t) => t.status === "completed").length;
+    const inProgress = tasks.filter((t) => t.status === "in_progress").length;
+    const overdue = tasks.filter(
+      (t) =>
+        t.dueDate &&
+        new Date(t.dueDate) < new Date() &&
+        t.status !== "completed"
+    ).length;
+
+    return { total, completed, inProgress, overdue };
+  }, [tasks]);
 
   useEffect(() => {
     fetchTasks();
@@ -137,28 +170,13 @@ const TasksPage = () => {
     const taskId = result.draggableId;
 
     if (source.droppableId !== destination.droppableId) {
-      // Map the droppableId to the correct status value for the database
       const statusMapping: Record<string, string> = {
         uncompleted: "uncompleted",
         in_progress: "in_progress",
         completed: "completed",
       };
 
-      // Get the correct status value for the database
       const newStatus = statusMapping[destination.droppableId];
-
-      // Get a user-friendly status name for the toast message
-      const statusDisplayName = {
-        uncompleted: "Uncompleted",
-        in_progress: "In Progress",
-        completed: "Completed",
-      }[newStatus];
-
-      console.log(
-        `Moving task ${taskId} from ${source.droppableId} to ${destination.droppableId} (DB status: ${newStatus})`
-      );
-
-      // Find the task being moved to get its title
       const movedTask = tasks.find((task) => task.id === taskId);
       const taskTitle = movedTask?.title || "Task";
 
@@ -189,12 +207,9 @@ const TasksPage = () => {
           console.error("Supabase update error:", error);
           throw error;
         }
-
-        // No toast for status changes as requested
       } catch (err) {
         console.error("Error updating task status:", err);
         tasksToasts.taskError("update status", handleSupabaseError(err));
-        // Revert the optimistic update
         fetchTasks();
       }
     }
@@ -202,11 +217,22 @@ const TasksPage = () => {
 
   const handleApplyFilters = (newFilters: FilterOptions) => {
     setFilters(newFilters);
+    setQuickSearch(""); // Clear quick search when applying filters
+  };
+
+  const clearAllFilters = () => {
+    setFilters({
+      search: "",
+      importance: [],
+      status: [],
+    });
+    setQuickSearch("");
   };
 
   const toggleFilterSidebar = () => {
     setFilterOpen(!filterOpen);
   };
+
   const toggleAddSidebar = () => {
     setAddSidebarOpen(!addSidebarOpen);
   };
@@ -215,7 +241,6 @@ const TasksPage = () => {
     newTaskData: Omit<Task, "id" | "created_at" | "updated_at" | "user_id">
   ) => {
     try {
-      // Get the current user
       const {
         data: { user },
         error: userError,
@@ -236,17 +261,13 @@ const TasksPage = () => {
         };
       }
 
-      // Validate task data before sending to Supabase
       try {
-        // Create a partial schema for the new task data
         const partialTaskSchema = taskSchema.omit({
           id: true,
           user_id: true,
           created_at: true,
           updated_at: true,
         });
-
-        // Validate the data
         partialTaskSchema.parse(newTaskData);
       } catch (validationError) {
         throw {
@@ -258,7 +279,6 @@ const TasksPage = () => {
 
       const now = new Date().toISOString();
 
-      // Prepare the data for insertion
       const taskToInsert = {
         user_id: user.id,
         title: newTaskData.title,
@@ -273,7 +293,6 @@ const TasksPage = () => {
         updated_at: now,
       };
 
-      // Insert the new task into Supabase
       const { data, error: insertError } = await supabase
         .from("tasks")
         .insert(taskToInsert)
@@ -290,27 +309,18 @@ const TasksPage = () => {
         };
       }
 
-      // Refresh the task list
       fetchTasks();
-
-      // Show success toast
       tasksToasts.taskCreated(newTaskData.title);
-
-      return true; // Return success for the sidebar to handle
+      return true;
     } catch (err) {
       const errorMessage = handleSupabaseError(err);
-
-      // Show error toast
       tasksToasts.taskError("create", errorMessage);
-
-      return false; // Return failure for the sidebar to handle
+      return false;
     }
   };
 
-  // Similarly enhance error handling for update and delete operations
   const handleUpdateTask = async (taskId: string, updates: Partial<Task>) => {
     try {
-      // Validate the task ID
       if (!taskId || typeof taskId !== "string") {
         throw {
           message: "Invalid task ID",
@@ -318,29 +328,24 @@ const TasksPage = () => {
         };
       }
 
-      // Get the task title for the toast
       const taskToUpdate = tasks.find((task) => task.id === taskId);
       const taskTitle = taskToUpdate?.title || "Task";
 
-      // Check if there are actual changes
       const hasChanges = Object.keys(updates).some((key) => {
         if (key === "dueDate") {
           const currentDueDate = taskToUpdate?.dueDate;
           const newDueDate = updates.dueDate;
 
-          // Handle null/undefined cases
           if (!currentDueDate && !newDueDate) return false;
           if (!currentDueDate && newDueDate) return true;
           if (currentDueDate && !newDueDate) return true;
 
-          // Compare dates
           return currentDueDate?.getTime() !== newDueDate?.getTime();
         }
 
         return taskToUpdate?.[key as keyof Task] !== updates[key as keyof Task];
       });
 
-      // If no changes, don't update or show toast
       if (!hasChanges) {
         return true;
       }
@@ -358,22 +363,18 @@ const TasksPage = () => {
         )
       );
 
-      // Prepare the data for Supabase
       const updateData = {
         ...updates,
         updated_at: new Date().toISOString(),
-        // Convert dueDate to due_date for Supabase
         ...(updates.dueDate !== undefined && {
           due_date: updates.dueDate ? updates.dueDate.toISOString() : null,
         }),
       };
 
-      // Remove frontend-specific fields that don't exist in the database
       if ("dueDate" in updateData) {
         delete updateData.dueDate;
       }
 
-      // Update in Supabase
       const { error: updateError } = await supabase
         .from("tasks")
         .update(updateData)
@@ -383,25 +384,18 @@ const TasksPage = () => {
         throw updateError;
       }
 
-      // Show success toast only if there were changes
       tasksToasts.taskUpdated(taskTitle);
-
-      return true; // Return success for the sidebar to handle
+      return true;
     } catch (err) {
       const errorMessage = handleSupabaseError(err);
-
-      // Show error toast
       tasksToasts.taskError("update", errorMessage);
-
-      // Revert the optimistic update
       fetchTasks();
-      return false; // Return failure for the sidebar to handle
+      return false;
     }
   };
 
   const handleDeleteTask = async (taskId: string) => {
     try {
-      // Get the task title before deleting for the toast
       const taskToDelete = tasks.find((task) => task.id === taskId);
       const taskTitle = taskToDelete?.title || "Task";
 
@@ -411,34 +405,23 @@ const TasksPage = () => {
         throw error;
       }
 
-      // Update local state
       setTasks((prev) => prev.filter((task) => task.id !== taskId));
-
-      // Show success toast
       tasksToasts.taskDeleted(taskTitle);
     } catch (err) {
       const errorMessage = handleSupabaseError(err);
-
-      // Show error toast
       tasksToasts.taskError("delete", errorMessage);
     }
   };
 
-  // Enhanced fetchTasks with more detailed logging
   const fetchTasks = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      console.log("Fetching tasks...");
-
-      // Get the current user
       const {
         data: { user },
         error: userError,
       } = await supabase.auth.getUser();
-
-      console.log("Auth response:", { user, error: userError });
 
       if (userError) {
         throw {
@@ -455,18 +438,11 @@ const TasksPage = () => {
         };
       }
 
-      // Fetch tasks for the current user
-      console.log("Fetching tasks for user:", user.id);
       const { data, error: fetchError } = await supabase
         .from("tasks")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-
-      console.log("Tasks response:", {
-        count: data?.length,
-        error: fetchError,
-      });
 
       if (fetchError) {
         throw fetchError;
@@ -479,11 +455,8 @@ const TasksPage = () => {
         };
       }
 
-      // Parse the data through Zod schema to ensure type safety
       try {
-        console.log("Parsing task data...");
         const parsedTasks = data.map((task) => {
-          console.log("Processing task:", task.id);
           return {
             ...task,
             created_at: new Date(task.created_at),
@@ -492,10 +465,8 @@ const TasksPage = () => {
           };
         });
 
-        console.log("Setting tasks state with parsed data");
         setTasks(parsedTasks);
       } catch (parseError) {
-        console.error("Parse error:", parseError);
         throw {
           message: "Failed to parse task data",
           details: parseError,
@@ -503,14 +474,10 @@ const TasksPage = () => {
         };
       }
     } catch (err) {
-      console.error("Error in fetchTasks:", err);
       const errorMessage = handleSupabaseError(err);
       setError(errorMessage);
-
-      // Show error toast
       tasksToasts.taskError("fetch", errorMessage);
     } finally {
-      console.log("Fetch tasks completed, setting isLoading to false");
       setIsLoading(false);
     }
   };
@@ -521,183 +488,286 @@ const TasksPage = () => {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto relative transition-colors duration-300">
-      {/* Header and view toggle */}
-      <div className="flex justify-between items-center mb-6">
-        <motion.div
-          className="flex items-center gap-4"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1 className="text-2xl font-bold dark:text-white">Tasks</h1>
+    <div className="p-6 max-w-7xl mx-auto relative">
+      {/* Header */}
+      <motion.div
+        className="mb-6"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-2">
+              Tasks
+            </h1>
+            <p className="text-zinc-600 dark:text-zinc-400">
+              Manage and track your tasks efficiently
+            </p>
+          </div>
 
-          {/* Active filters indicator */}
-          {hasActiveFilters && (
-            <motion.div
-              className="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
+          <div className="flex items-center gap-3">
+            {/* Quick Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 h-4 w-4" />
+              <Input
+                placeholder="Quick search..."
+                value={quickSearch}
+                onChange={(e: any) => setQuickSearch(e.target.value)}
+                className="pl-10 w-64"
+              />
+            </div>
+
+            {/* Filter Button */}
+            <Button
+              variant={hasActiveFilters ? "default" : "outline"}
+              onClick={toggleFilterSidebar}
+              className="gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              Filter
+              {hasActiveFilters && (
+                <span className="ml-1 bg-white/20 text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {(combinedSearch ? 1 : 0) +
+                    filters.importance.length +
+                    filters.status.length}
+                </span>
+              )}
+            </Button>
+
+            <motion.button
+              className="cursor-pointer rounded-full p-3 bg-blue-600 text-white shadow-lg"
+              onClick={toggleAddSidebar}
+              whileHover={{ scale: 1.1, rotate: 90 }}
+              whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.3 }}
             >
-              <Filter size={14} />
-              <span>
-                {filteredTasks.length} of {tasks.length} tasks
+              <Plus size={24} />
+            </motion.button>
+          </div>
+        </div>
+
+        {/* Task Statistics */}
+        <motion.div
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <div className="bg-white dark:bg-zinc-800 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="h-2 w-2 bg-zinc-500 rounded-full"></div>
+              <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                Total
               </span>
-            </motion.div>
-          )}
+            </div>
+            <span className="text-2xl font-bold text-zinc-900 dark:text-white">
+              {taskStats.total}
+            </span>
+          </div>
+
+          <div className="bg-white dark:bg-zinc-800 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700">
+            <div className="flex items-center gap-2 mb-1">
+              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                Completed
+              </span>
+            </div>
+            <span className="text-2xl font-bold text-green-600">
+              {taskStats.completed}
+            </span>
+          </div>
+
+          <div className="bg-white dark:bg-zinc-800 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700">
+            <div className="flex items-center gap-2 mb-1">
+              <Clock className="h-4 w-4 text-blue-500" />
+              <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                In Progress
+              </span>
+            </div>
+            <span className="text-2xl font-bold text-blue-600">
+              {taskStats.inProgress}
+            </span>
+          </div>
+
+          <div className="bg-white dark:bg-zinc-800 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700">
+            <div className="flex items-center gap-2 mb-1">
+              <AlertCircle className="h-4 w-4 text-red-500" />
+              <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                Overdue
+              </span>
+            </div>
+            <span className="text-2xl font-bold text-red-600">
+              {taskStats.overdue}
+            </span>
+          </div>
         </motion.div>
 
-        <div className="flex items-center gap-4">
-          {/* Filter Button */}
-          <motion.button
-            className={`flex items-center gap-2 px-4 py-2 border rounded shadow-sm transition-colors ${
-              hasActiveFilters
-                ? "bg-blue-50 dark:bg-blue-900 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300"
-                : "bg-white dark:bg-gray-800 dark:text-white dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
-            }`}
-            onClick={toggleFilterSidebar}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Filter size={16} />
-            <span>Filter</span>
-            {hasActiveFilters && (
-              <span className="ml-1 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {(filters.search ? 1 : 0) +
-                  filters.importance.length +
-                  filters.status.length}
-              </span>
-            )}
-          </motion.button>
-
-          {/* View Toggle */}
-          <motion.div
-            className="flex border rounded overflow-hidden shadow-sm dark:border-gray-700"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <button
-              className={`px-4 py-2 ${
-                viewMode === "table"
-                  ? "bg-gray-100 dark:bg-gray-700"
-                  : "bg-white dark:bg-gray-800"
-              } dark:text-white`}
-              onClick={() => setViewMode("table")}
+        {/* Active Filters Display */}
+        <AnimatePresence>
+          {hasActiveFilters && (
+            <motion.div
+              className="flex items-center gap-2 mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
             >
-              <span className="flex items-center gap-2">
-                {/* Table icon */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <line x1="3" y1="9" x2="21" y2="9" />
-                  <line x1="3" y1="15" x2="21" y2="15" />
-                  <line x1="9" y1="3" x2="9" y2="21" />
-                  <line x1="15" y1="3" x2="15" y2="21" />
-                </svg>
-                Table view
+              <Filter className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm text-blue-700 dark:text-blue-300">
+                Showing {filteredTasks.length} of {tasks.length} tasks
               </span>
-            </button>
+              {combinedSearch && (
+                <span className="px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 text-xs rounded">
+                  Search: "{combinedSearch}"
+                </span>
+              )}
+              {filters.importance.length > 0 && (
+                <span className="px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 text-xs rounded">
+                  Importance: {filters.importance.join(", ")}
+                </span>
+              )}
+              {filters.status.length > 0 && (
+                <span className="px-2 py-1 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 text-xs rounded">
+                  Status: {filters.status.join(", ")}
+                </span>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllFilters}
+                className="ml-auto text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+              >
+                Clear all
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* View Toggle */}
+        <motion.div
+          className="flex items-center gap-2"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <span className="text-sm text-zinc-600 dark:text-zinc-400 mr-2">
+            View:
+          </span>
+          <div className="flex border border-zinc-200 dark:border-zinc-700 rounded-lg overflow-hidden">
             <button
-              className={`px-4 py-2 ${
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
                 viewMode === "kanban"
-                  ? "bg-gray-100 dark:bg-gray-700"
-                  : "bg-white dark:bg-gray-800"
-              } dark:text-white`}
+                  ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900"
+                  : "bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700"
+              }`}
               onClick={() => setViewMode("kanban")}
             >
-              <span className="flex items-center gap-2">
-                {/* Kanban icon */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="3" y="3" width="5" height="18" rx="1" />
-                  <rect x="10" y="3" width="5" height="18" rx="1" />
-                  <rect x="17" y="3" width="5" height="18" rx="1" />
-                </svg>
-                Kanban board
-              </span>
+              Kanban
             </button>
-          </motion.div>
+            <button
+              className={`px-4 py-2 text-sm font-medium transition-colors ${
+                viewMode === "table"
+                  ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900"
+                  : "bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700"
+              }`}
+              onClick={() => setViewMode("table")}
+            >
+              Table
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
 
-          <motion.button
-            className="cursor-pointer rounded-full p-3 bg-blue-600 text-white shadow-lg"
-            onClick={toggleAddSidebar}
-            whileHover={{ scale: 1.1, rotate: 90 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Plus size={24} />
-          </motion.button>
-        </div>
-      </div>
-
-      {/* Loading state */}
+      {/* Loading State */}
       {isLoading && (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
+        <motion.div
+          className="flex justify-center items-center h-64"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+            <span className="text-zinc-600 dark:text-zinc-400">
+              Loading tasks...
+            </span>
+          </div>
+        </motion.div>
       )}
 
-      {/* Error state */}
+      {/* Error State */}
       {error && !isLoading && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-          <strong className="font-bold">Error: </strong>
-          <span className="block sm:inline">{error}</span>
-        </div>
+        <motion.div
+          className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg mb-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5" />
+            <strong className="font-medium">Error:</strong>
+            <span>{error}</span>
+          </div>
+        </motion.div>
       )}
 
-      {/* No results message */}
+      {/* Empty State */}
+      {!isLoading && !error && tasks.length === 0 && (
+        <motion.div
+          className="text-center py-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="text-zinc-400 mb-4">
+            <Calendar className="h-16 w-16 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-zinc-600 dark:text-zinc-400 mb-2">
+              No tasks yet
+            </h3>
+            <p className="text-zinc-500 dark:text-zinc-500 mb-6">
+              Get started by creating your first task
+            </p>
+            <Button onClick={toggleAddSidebar} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Create your first task
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
+      {/* No Results State */}
       {!isLoading &&
         !error &&
         hasActiveFilters &&
-        filteredTasks.length === 0 && (
+        filteredTasks.length === 0 &&
+        tasks.length > 0 && (
           <motion.div
             className="text-center py-12"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
             style={{
               width: filterOpen ? "calc(100% - 33.333%)" : "100%",
               transition: "width 0.3s ease-in-out",
             }}
           >
-            <div className="text-gray-500 dark:text-gray-400">
-              <Filter size={48} className="mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">
+            <div className="text-zinc-400 mb-4">
+              <Search className="h-16 w-16 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-zinc-600 dark:text-zinc-400 mb-2">
                 No tasks match your filters
               </h3>
-              <p className="text-sm">
-                Try adjusting your filter criteria to see more results.
+              <p className="text-zinc-500 dark:text-zinc-500 mb-6">
+                Try adjusting your search criteria or filters
               </p>
+              <Button variant="outline" onClick={clearAllFilters}>
+                Clear all filters
+              </Button>
             </div>
           </motion.div>
         )}
 
-      {/* Kanban / Table */}
+      {/* Main Content */}
       {!isLoading &&
         !error &&
         (hasActiveFilters ? filteredTasks.length > 0 : tasks.length > 0) && (
           <motion.div
-            className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-sm"
+            className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
@@ -726,14 +796,13 @@ const TasksPage = () => {
           </motion.div>
         )}
 
-      {/* Add Task Sidebar */}
+      {/* Sidebars */}
       <AddTaskSidebar
         isOpen={addSidebarOpen}
         onClose={toggleAddSidebar}
         onAddTask={handleAddTask}
       />
 
-      {/* Edit Task Sidebar */}
       <EditTaskSidebar
         isOpen={editSidebarOpen}
         onClose={() => setEditSidebarOpen(false)}
@@ -741,7 +810,7 @@ const TasksPage = () => {
         onDeleteTask={handleDeleteTask}
         task={selectedTask}
       />
-      {/* Filter Sidebar */}
+
       <TaskFilter
         isOpen={filterOpen}
         onClose={() => setFilterOpen(false)}

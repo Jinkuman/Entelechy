@@ -19,7 +19,7 @@ const DeleteEventDialog = ({
 }: DeleteEventDialogProps) => {
   if (!isOpen) return null;
 
-  const isRecurring = event.isRecurring && event.recurringPattern !== "none";
+  const isRecurring = event.is_recurring && event.recurring_pattern !== "none";
   const isInstance = isRecurringInstance(event);
 
   return (

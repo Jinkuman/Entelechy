@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import Calendar from "@/app/components/ui/calendar/calendar";
 import { Event } from "@/app/schemas/eventSchema";
 import supabase from "@/lib/supabaseClient";
@@ -10,6 +11,7 @@ import { Plus } from "lucide-react";
 import { calendarToasts } from "@/app/components/ui/toast-utils";
 
 const CalendarPage = () => {
+  const searchParams = useSearchParams();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -17,6 +19,34 @@ const CalendarPage = () => {
 
   // Create a ref to hold the function from the Calendar component
   const openCreateSidebarRef = useRef<() => void>(() => {});
+
+  // Check for URL parameters to open sidebar
+  useEffect(() => {
+    const openParam = searchParams.get("open");
+    if (openParam === "create-event" && !loading) {
+      // Function to try opening the sidebar
+      const tryOpenSidebar = () => {
+        if (openCreateSidebarRef.current) {
+          openCreateSidebarRef.current();
+          return true;
+        }
+        return false;
+      };
+
+      // Try immediately
+      if (!tryOpenSidebar()) {
+        // If not available immediately, retry with intervals
+        let attempts = 0;
+        const maxAttempts = 10;
+        const interval = setInterval(() => {
+          attempts++;
+          if (tryOpenSidebar() || attempts >= maxAttempts) {
+            clearInterval(interval);
+          }
+        }, 100);
+      }
+    }
+  }, [searchParams, loading]);
 
   // Fetch the current user and their events
   useEffect(() => {
@@ -59,6 +89,9 @@ const CalendarPage = () => {
           color: event.color || "blue",
           created_at: new Date(event.created_at),
           updated_at: new Date(event.updated_at),
+          is_recurring: event.is_recurring || false,
+          custom_recurring: event.custom_recurring || null,
+          recurring_pattern: event.recurring_pattern || null,
         }));
 
         setEvents(transformedEvents);
@@ -147,6 +180,9 @@ const CalendarPage = () => {
         color: data.color || "blue",
         created_at: new Date(data.created_at),
         updated_at: new Date(data.updated_at),
+        is_recurring: data.is_recurring || false,
+        custom_recurring: data.custom_recurring || null,
+        recurring_pattern: data.recurring_pattern || null,
       };
 
       setEvents([...events, createdEvent]);

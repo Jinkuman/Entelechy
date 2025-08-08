@@ -24,7 +24,7 @@ const DaySidebar = ({
   ];
 
   return (
-    <div className="w-64 border-l border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-800">
+    <div className="w-64 border-l border-gray-200 dark:border-zinc-700 p-4 bg-gray-50 dark:bg-zinc-800">
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -32,7 +32,7 @@ const DaySidebar = ({
         className="space-y-6"
       >
         {/* Upcoming events preview */}
-        <div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm p-3">
+        <div className="bg-white dark:bg-zinc-700 rounded-lg shadow-sm p-3">
           <h3 className="font-medium text-gray-800 dark:text-gray-100 mb-3 flex items-center">
             <CalendarIcon
               size={16}
