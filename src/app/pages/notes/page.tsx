@@ -105,9 +105,12 @@ export default function NotesPage() {
           return noteTags.some((tag) => tag.toLowerCase().includes(tagQuery));
         });
       } else {
-        // Content search
-        filtered = filtered.filter((note) =>
-          note.content.toLowerCase().includes(searchQuery.toLowerCase())
+        // Content and title search
+        filtered = filtered.filter(
+          (note) =>
+            note.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (note.title &&
+              note.title.toLowerCase().includes(searchQuery.toLowerCase()))
         );
       }
     }

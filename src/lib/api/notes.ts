@@ -26,6 +26,7 @@ export async function fetchUserNotes(userId: string): Promise<Note[]> {
             ...note,
             starred: note.starred === null ? false : note.starred,
           };
+          console.log("Raw notes data:", processedNote);
 
           // Validate with Zod schema
           return NoteSchema.parse(processedNote);

@@ -517,25 +517,6 @@ export function Sidebar({ className }: SidebarProps) {
               <div className="py-2 min-w-60">
                 {/* Menu Items with Staggered Animation */}
                 <div className="py-1">
-                  <motion.button
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3, duration: 0.3 }}
-                    className="w-full px-4 py-3 text-sm text-left flex items-center gap-3 hover:bg-gradient-to-r hover:from-zinc-50 hover:to-zinc-100/50 dark:hover:from-zinc-800 dark:hover:to-zinc-700/50 transition-all duration-200 cursor-pointer group"
-                    whileHover={{ x: 4 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <motion.div
-                      whileHover={{ scale: 1.1, rotate: 5 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <User className="h-4 w-4 text-zinc-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200" />
-                    </motion.div>
-                    <span className="dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors duration-200">
-                      Profile Settings
-                    </span>
-                  </motion.button>
-
                   {/* Dark Mode Toggle with Enhanced Animation */}
                   <motion.button
                     initial={{ opacity: 0, x: -20 }}
