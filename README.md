@@ -242,23 +242,10 @@ npm start
 - **HTTPS**: Secure data transmission
 - **Input Validation**: Zod schema validation throughout
 
-## 🤝 Contributing
-
-We welcome contributions! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
 ## 🆘 Support
 
-If you encounter any issues:
-
-1. Check the `GOOGLE_OAUTH_SETUP.md` for authentication problems
-2. Verify your environment variables are correctly set
-3. Ensure your Supabase project is properly configured
-4. Check the browser console for any error messages
+Reach out if you think of new features that will make the app even better!
 
 ---
 
-**Entelechy** - Turning potential into productivity. ✨
+
