@@ -128,7 +128,7 @@ _For developers who want to run Entelechy locally or contribute to the project:_
 1. **Clone the repository**
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/Jinkuman/Entelechy
    cd entelechy
    ```
 
